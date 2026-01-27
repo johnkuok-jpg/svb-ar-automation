@@ -1,8 +1,7 @@
-streamlit>=1.31.0
-pandas>=2.0.0
-google-auth>=2.27.0
-google-auth-oauthlib>=1.2.0
-google-auth-httplib2>=0.2.0
-gspread>=6.0.0
-fuzzywuzzy>=0.18.0
-python-Levenshtein>=0.20.0
+streamlit
+pandas
+google-auth
+google-auth-oauthlib
+google-auth-httplib2
+gspread
+rapidfuzz

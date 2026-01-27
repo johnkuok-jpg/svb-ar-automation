@@ -2,7 +2,7 @@ import streamlit as st
 import pandas as pd
 import gspread
 from google.oauth2.service_account import Credentials
-from fuzzywuzzy import process, fuzz
+from rapidfuzz import process, fuzz
 import json
 from datetime import datetime
 
