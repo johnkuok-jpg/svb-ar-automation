@@ -2,6 +2,7 @@
 past_due_dashboard.py
 
 Streamlit dashboard for past due AR invoices.
+- Password-protected login
 - Fetches past due invoices from NetSuite
 - Shows table: Customer, Email, Invoice #, Amount Due, Due Date, Days Overdue
 - Click a row to open an editable email draft
@@ -17,7 +18,8 @@ Required env vars / st.secrets:
     NETSUITE_TOKEN_ID, NETSUITE_TOKEN_SECRET
     GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET, GOOGLE_REFRESH_TOKEN
     GOOGLE_SHEET_ID
-    GMAIL_SENDER  (optional, defaults to john.kuok@perplexity.ai)
+    GMAIL_SENDER       (optional, defaults to john.kuok@perplexity.ai)
+    DASHBOARD_PASSWORD (required — blocks access without password)
 """
 
 import os
@@ -39,25 +41,47 @@ st.set_page_config(
     layout="wide",
 )
 
-TOKEN_URI = "https://oauth2.googleapis.com/token"
-SCOPES    = [
-    "https://www.googleapis.com/auth/gmail.send",
-    "https://www.googleapis.com/auth/drive",
-    "https://www.googleapis.com/auth/spreadsheets",
-]
-LOG_TAB = "email_log"
-
-
+# ── Secrets helper ──────────────────────────────────────────────────────────────
 def _secret(key: str, default: str = None) -> str:
     """Read from st.secrets (Streamlit Cloud) or os.environ (GitHub Actions / local)."""
-    if key in st.secrets:
-        return st.secrets[key]
+    try:
+        if key in st.secrets:
+            return st.secrets[key]
+    except Exception:
+        pass
     val = os.environ.get(key, default)
     if val is None:
         raise KeyError(key)
     return val
 
 
+# ── Password gate ──────────────────────────────────────────────────────────────
+def _check_password():
+    correct = _secret("DASHBOARD_PASSWORD", "")
+    if not correct:
+        return  # No password configured — allow access
+    if st.session_state.get("authenticated"):
+        return
+    st.title("💰 Past Due AR Dashboard")
+    pwd = st.text_input("Password", type="password")
+    if st.button("Login"):
+        if pwd == correct:
+            st.session_state["authenticated"] = True
+            st.rerun()
+        else:
+            st.error("Incorrect password.")
+    st.stop()
+
+_check_password()
+
+# ── Constants ────────────────────────────────────────────────────────────────────
+TOKEN_URI = "https://oauth2.googleapis.com/token"
+SCOPES    = [
+    "https://www.googleapis.com/auth/gmail.send",
+    "https://www.googleapis.com/auth/drive",
+    "https://www.googleapis.com/auth/spreadsheets",
+]
+LOG_TAB  = "email_log"
 SHEET_ID = _secret("GOOGLE_SHEET_ID", "1PDLXi7ZQxvDSeUbdf7_5ft1Npq7oIBad9PgTl0R2CpM")
 SENDER   = _secret("GMAIL_SENDER", "john.kuok@perplexity.ai")
 
@@ -86,7 +110,6 @@ def _ensure_log_tab():
             spreadsheetId=SHEET_ID,
             body={"requests": [{"addSheet": {"properties": {"title": LOG_TAB}}}]}
         ).execute()
-        # Write header
         sheets.spreadsheets().values().update(
             spreadsheetId=SHEET_ID,
             range=f"{LOG_TAB}!A1",
@@ -155,10 +178,8 @@ Perplexity AI \u2014 Accounts Receivable
 st.title("💰 Past Due AR Dashboard")
 st.caption(f"Data refreshes every 5 minutes  \u00b7  Sending from **{SENDER}**")
 
-# Ensure log tab exists
 _ensure_log_tab()
 
-# Tabs
 tab_invoices, tab_log = st.tabs(["📋 Past Due Invoices", "📨 Email Log"])
 
 with tab_invoices:
@@ -171,7 +192,6 @@ with tab_invoices:
 
     df = pd.DataFrame(invoices)
 
-    # Summary metrics
     col1, col2, col3 = st.columns(3)
     col1.metric("Past Due Invoices", len(df))
     col2.metric("Total Amount Due", f"${df['amount_due'].sum():,.2f}")
@@ -179,7 +199,6 @@ with tab_invoices:
 
     st.divider()
 
-    # Color-code days overdue
     def highlight_overdue(val):
         if isinstance(val, (int, float)):
             if val > 90:
@@ -188,7 +207,6 @@ with tab_invoices:
                 return "background-color: #fff3cd"
         return ""
 
-    # Display table
     display_df = df[[
         "tranid", "entity_name", "billing_email",
         "amount_due", "due_date", "days_overdue"
@@ -209,7 +227,6 @@ with tab_invoices:
     st.divider()
     st.subheader("✉️ Send Follow-Up Email")
 
-    # Invoice selector
     invoice_options = {
         f"{inv['tranid']} \u2014 {inv['entity_name']} (${inv['amount_due']:,.2f}, {inv['days_overdue']}d overdue)": inv
         for inv in invoices
@@ -217,7 +234,6 @@ with tab_invoices:
     selected_label = st.selectbox("Select invoice", list(invoice_options.keys()))
     selected_inv = invoice_options[selected_label]
 
-    # Pre-fill editable fields
     to_email = st.text_input("To", value=selected_inv.get("billing_email", ""))
     subject  = st.text_input("Subject", value=default_subject(selected_inv))
     body     = st.text_area("Message", value=default_body(selected_inv), height=300)
@@ -249,7 +265,6 @@ with tab_invoices:
                         body=body,
                     )
                     st.success(f"Email sent to **{to_email}** and logged.")
-                    # Clear cache so log tab refreshes
                     st.cache_data.clear()
                 except Exception as e:
                     st.error(f"Failed to send: {e}")
