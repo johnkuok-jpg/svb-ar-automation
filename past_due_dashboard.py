@@ -143,9 +143,7 @@ I hope this message finds you well. I'm reaching out regarding invoice {inv['tra
 
 Could you please let us know the status of this payment? If you have already sent it, please disregard this message.
 
-To review the invoice, please visit: {inv['netsuite_url']}
-
-If you have any questions, please don't hesitate to reach out.
+If you have any questions or need a copy of the invoice, please don't hesitate to reach out.
 
 Best regards,
 Perplexity AI \u2014 Accounts Receivable
