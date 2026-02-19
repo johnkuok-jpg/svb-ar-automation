@@ -10,13 +10,15 @@ Required env vars:
     SFTP_USERNAME           SFTP username
     SFTP_PASSWORD           SFTP password
     SFTP_REMOTE_DIR         Remote directory containing BAI files
-    SFTP_FILENAME_PATTERN   (optional) regex pattern, use {date} as placeholder
-    SFTP_DATE_FMT           (optional) strftime format for date in filename, default %Y%m%d
     GOOGLE_CLIENT_ID        Google OAuth2 client ID
     GOOGLE_CLIENT_SECRET    Google OAuth2 client secret
     GOOGLE_REFRESH_TOKEN    Google OAuth2 refresh token (from one-time auth flow)
     GOOGLE_DRIVE_FOLDER_ID  Target Google Drive folder ID
-    LOCAL_WORK_DIR          (optional) local temp directory, default /tmp/bai_pipeline
+
+Optional env vars (safe to omit):
+    SFTP_FILENAME_PATTERN   regex pattern, use {date} as placeholder
+    SFTP_DATE_FMT           strftime format for date in filename (default: %Y%m%d)
+    LOCAL_WORK_DIR          local temp directory (default: /tmp/bai_pipeline)
 """
 
 import csv
@@ -63,10 +65,11 @@ def get_config() -> dict:
     if missing:
         raise EnvironmentError(f"Missing required environment variables: {', '.join(missing)}")
 
-    config["SFTP_PORT"]              = int(os.environ.get("SFTP_PORT", "22"))
-    config["SFTP_FILENAME_PATTERN"]  = os.environ.get("SFTP_FILENAME_PATTERN")
-    config["SFTP_DATE_FMT"]          = os.environ.get("SFTP_DATE_FMT", "%Y%m%d")
-    config["LOCAL_WORK_DIR"]         = os.environ.get("LOCAL_WORK_DIR", "/tmp/bai_pipeline")
+    # Optional vars -- use `or` so empty strings fall back to defaults
+    config["SFTP_PORT"]              = int(os.environ.get("SFTP_PORT") or "22")
+    config["SFTP_FILENAME_PATTERN"]  = os.environ.get("SFTP_FILENAME_PATTERN") or None
+    config["SFTP_DATE_FMT"]          = os.environ.get("SFTP_DATE_FMT") or "%Y%m%d"
+    config["LOCAL_WORK_DIR"]         = os.environ.get("LOCAL_WORK_DIR") or "/tmp/bai_pipeline"
     config["GOOGLE_DRIVE_FOLDER_ID"] = os.environ.get("GOOGLE_DRIVE_FOLDER_ID")
     return config
 
@@ -117,9 +120,7 @@ def run():
     }
 
     try:
-        # ------------------------------------------------------------------
         # 1. Download raw TXT from SFTP
-        # ------------------------------------------------------------------
         logger.info("Step 1: Downloading BAI file from SFTP...")
         local_bai_path = download_bai_file(
             host=config["SFTP_HOST"],
@@ -134,9 +135,7 @@ def run():
         log_entry["bai_file"] = os.path.basename(local_bai_path)
         logger.info(f"Downloaded: {local_bai_path}")
 
-        # ------------------------------------------------------------------
         # 2. Upload raw TXT to Drive
-        # ------------------------------------------------------------------
         logger.info("Step 2: Uploading raw TXT to Google Drive...")
         log_entry["raw_txt_drive_id"] = upload_to_drive(
             local_file_path=local_bai_path,
@@ -144,9 +143,7 @@ def run():
             mime_type="text/plain",
         )
 
-        # ------------------------------------------------------------------
         # 3. Parse BAI2 - transactions only
-        # ------------------------------------------------------------------
         logger.info("Step 3: Parsing BAI2 file...")
         with open(local_bai_path, "r", encoding="utf-8", errors="replace") as f:
             content = f.read()
@@ -155,17 +152,13 @@ def run():
         transaction_rows = file_to_transaction_rows(file_record)
         logger.info(f"Parsed {len(transaction_rows)} transaction rows")
 
-        # ------------------------------------------------------------------
         # 4. Write transactions CSV
-        # ------------------------------------------------------------------
         logger.info("Step 4: Writing transactions CSV...")
         base_name = Path(local_bai_path).stem
         transactions_csv = os.path.join(work_dir, f"{base_name}_transactions.csv")
         log_entry["transaction_rows"] = write_csv(transaction_rows, transactions_csv)
 
-        # ------------------------------------------------------------------
         # 5. Upload transactions CSV to Drive
-        # ------------------------------------------------------------------
         logger.info("Step 5: Uploading transactions CSV to Google Drive...")
         log_entry["transactions_drive_id"] = upload_to_drive(
             local_file_path=transactions_csv,

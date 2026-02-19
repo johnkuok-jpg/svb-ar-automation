@@ -82,14 +82,14 @@ def download_bai_file(
     remote_dir: str,
     local_dir: str,
     filename_pattern: Optional[str] = None,
-    date_fmt: str = "%Y%m%d",
+    date_fmt: Optional[str] = None,
 ) -> str:
     """
     Full SFTP download flow. Returns local file path of the downloaded file.
     Raises FileNotFoundError if the target file cannot be located.
     """
     os.makedirs(local_dir, exist_ok=True)
-    date_str = get_prior_day_str(date_fmt)
+    date_str = get_prior_day_str(date_fmt or "%Y%m%d")
 
     sftp = connect_sftp(host, port, username, password)
     try:
