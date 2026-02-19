@@ -106,6 +106,7 @@ def _join_continuations(lines: List[str]) -> List[str]:
             continue
         rt = line.split(",", 1)[0]
         if rt == RT_CONTINUATION and merged:
+            # Strip the leading "88," and append to previous line
             continuation_data = line[3:] if line.startswith("88,") else line[2:]
             merged[-1] = merged[-1].rstrip("/") + continuation_data
         else:
@@ -139,6 +140,9 @@ def parse_bai2(content: str) -> FileRecord:
         fields = _split_fields(raw_line)
         rt = fields[0]
 
+        # ------------------------------------------------------------------
+        # 01 - File Header
+        # ------------------------------------------------------------------
         if rt == RT_FILE_HEADER:
             file_rec.sender_id             = fields[1] if len(fields) > 1 else ""
             file_rec.receiver_id           = fields[2] if len(fields) > 2 else ""
@@ -149,6 +153,9 @@ def parse_bai2(content: str) -> FileRecord:
             file_rec.blocking_factor       = fields[7] if len(fields) > 7 else ""
             file_rec.version_number        = fields[8] if len(fields) > 8 else ""
 
+        # ------------------------------------------------------------------
+        # 02 - Group Header
+        # ------------------------------------------------------------------
         elif rt == RT_GROUP_HEADER:
             current_group = GroupRecord()
             current_group.ultimate_receiver_id = fields[1] if len(fields) > 1 else ""
@@ -160,10 +167,16 @@ def parse_bai2(content: str) -> FileRecord:
             current_group.as_of_date_modifier  = fields[7] if len(fields) > 7 else ""
             file_rec.groups.append(current_group)
 
+        # ------------------------------------------------------------------
+        # 03 - Account Header
+        # ------------------------------------------------------------------
         elif rt == RT_ACCOUNT_HEADER:
             current_account = AccountRecord()
             current_account.customer_account = fields[1] if len(fields) > 1 else ""
             current_account.currency_code    = fields[2] if len(fields) > 2 else ""
+
+            # BAI2 account headers can have multiple type_code/amount/item_count/funds_type
+            # groups. We capture all of them as balance entries.
             i = 3
             while i < len(fields):
                 balance = {
@@ -172,12 +185,17 @@ def parse_bai2(content: str) -> FileRecord:
                     "item_count":  fields[i+2] if i+2 < len(fields) else "",
                     "funds_type":  fields[i+3] if i+3 < len(fields) else "",
                 }
+                # Skip empty type_codes
                 if balance["type_code"]:
                     current_account.balances.append(balance)
                 i += 4
+
             if current_group:
                 current_group.accounts.append(current_account)
 
+        # ------------------------------------------------------------------
+        # 16 - Transaction Detail
+        # ------------------------------------------------------------------
         elif rt == RT_TRANSACTION:
             current_transaction = TransactionRecord()
             current_transaction.type_code     = fields[1] if len(fields) > 1 else ""
@@ -186,6 +204,8 @@ def parse_bai2(content: str) -> FileRecord:
             current_transaction.bank_ref      = fields[4] if len(fields) > 4 else ""
             current_transaction.customer_ref  = fields[5] if len(fields) > 5 else ""
             current_transaction.text          = ",".join(fields[6:]) if len(fields) > 6 else ""
+
+            # Inherit context
             if current_account and current_group:
                 current_transaction.account_id          = current_account.customer_account
                 current_transaction.currency_code       = current_account.currency_code or current_group.currency_code
@@ -196,21 +216,31 @@ def parse_bai2(content: str) -> FileRecord:
                 current_transaction.customer_id         = current_group.ultimate_receiver_id
                 current_transaction.file_date           = file_rec.file_creation_date
                 current_transaction.file_time           = file_rec.file_creation_time
+
             if current_account:
                 current_account.transactions.append(current_transaction)
 
+        # ------------------------------------------------------------------
+        # 49 - Account Trailer
+        # ------------------------------------------------------------------
         elif rt == RT_ACCOUNT_TRAILER:
             if current_account:
                 current_account.account_control_total = fields[1] if len(fields) > 1 else ""
                 current_account.account_record_count  = fields[2] if len(fields) > 2 else ""
             current_transaction = None
 
+        # ------------------------------------------------------------------
+        # 98 - Group Trailer
+        # ------------------------------------------------------------------
         elif rt == RT_GROUP_TRAILER:
             if current_group:
                 current_group.group_control_total  = fields[1] if len(fields) > 1 else ""
                 current_group.group_record_count   = fields[2] if len(fields) > 2 else ""
             current_account = None
 
+        # ------------------------------------------------------------------
+        # 99 - File Trailer
+        # ------------------------------------------------------------------
         elif rt == RT_FILE_TRAILER:
             file_rec.file_control_total  = fields[1] if len(fields) > 1 else ""
             file_rec.file_record_count   = fields[2] if len(fields) > 2 else ""
@@ -256,29 +286,81 @@ def file_to_balances_rows(file_rec: FileRecord) -> List[dict]:
     return rows
 
 
+# ---------------------------------------------------------------------------
+# BAI2 type code -> SVB-style transaction type label + credit/debit logic
+# BAI2 type codes 100-399 are credits (money IN), 400-699 are debits (money OUT)
+# ---------------------------------------------------------------------------
+def _is_credit(type_code: str) -> bool:
+    """Return True if the BAI2 type code represents a credit (money in)."""
+    try:
+        return 100 <= int(type_code) <= 399
+    except (ValueError, TypeError):
+        return False
+
+
+_TYPE_CODE_LABELS = {
+    "169": "ACH CREDIT",
+    "195": "WIRE TRANSFER CREDIT",
+    "214": "FX Wire Transfer Credit",
+    "174": "Miscellaneous ACH Credit",
+    "301": "MOBILE DEPOSIT",
+    "469": "ACH DEBIT",
+    "495": "WIRE TRANSFER DEBIT",
+    "575": "ZERO BAL TRF DEBIT",
+    "496": "FX Wire Transfer Debit",
+}
+
+
+def _tran_type_label(type_code: str) -> str:
+    """Return a human-readable transaction type label for a BAI2 type code."""
+    if type_code in _TYPE_CODE_LABELS:
+        return _TYPE_CODE_LABELS[type_code]
+    return ("Credit" if _is_credit(type_code) else "Debit") + f" ({type_code})"
+
+
+def _format_bai_date(raw: str) -> str:
+    """Convert BAI2 date YYMMDD or YYYYMMDD to MM/DD/YYYY."""
+    from datetime import datetime as _dt
+    raw = raw.strip()
+    try:
+        if len(raw) == 6:
+            return _dt.strptime(raw, "%y%m%d").strftime("%m/%d/%Y")
+        elif len(raw) == 8:
+            return _dt.strptime(raw, "%Y%m%d").strftime("%m/%d/%Y")
+    except ValueError:
+        pass
+    return raw
+
+
 def file_to_transaction_rows(file_rec: FileRecord) -> List[dict]:
-    """Flatten all transaction records into a list of dicts."""
+    """Flatten all transaction records into SVB CSV column format."""
     rows = []
     for group in file_rec.groups:
         for account in group.accounts:
             for txn in account.transactions:
+                is_cr = _is_credit(txn.type_code)
+                # BAI2 amounts are in cents (integer string) - convert to dollar string
+                try:
+                    amt = "{:,.2f}".format(int(txn.amount) / 100)
+                except (ValueError, TypeError):
+                    amt = txn.amount
+
                 rows.append({
-                    "file_sender_id":        file_rec.sender_id,
-                    "file_receiver_id":      file_rec.receiver_id,
-                    "file_creation_date":    txn.file_date,
-                    "file_creation_time":    txn.file_time,
-                    "group_originator_id":   txn.bank_id,
-                    "group_receiver_id":     txn.customer_id,
-                    "as_of_date":            txn.as_of_date,
-                    "as_of_time":            txn.as_of_time,
-                    "as_of_date_modifier":   txn.as_of_date_modifier,
-                    "customer_account":      txn.account_id,
-                    "currency_code":         txn.currency_code,
-                    "type_code":             txn.type_code,
-                    "amount":                txn.amount,
-                    "funds_type":            txn.funds_type,
-                    "bank_ref":              txn.bank_ref,
-                    "customer_ref":          txn.customer_ref,
-                    "text":                  txn.text,
+                    "Date":               _format_bai_date(txn.as_of_date),
+                    "Bank ID":            txn.bank_id,
+                    "Account Number":     txn.account_id,
+                    "Account Title":      "AR Account",
+                    "Entity":             "PERPLEXITY AI, INC.",
+                    "Tran Type":          _tran_type_label(txn.type_code),
+                    "BAI Type Code":      txn.type_code,
+                    "Currency":           txn.currency_code,
+                    "Credit Amount":      amt if is_cr else "",
+                    "Debit Amount":       amt if not is_cr else "",
+                    "Bank Ref #":         txn.bank_ref,
+                    "End to End ID":      "",
+                    "Customer Ref #":     txn.customer_ref,
+                    "Description":        txn.text,
+                    "Reason for Payment": "",
+                    "Notes":              "",
                 })
     return rows
