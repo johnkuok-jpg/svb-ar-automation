@@ -32,8 +32,6 @@ jobs:
           SFTP_USERNAME:           ${{ secrets.SFTP_USERNAME }}
           SFTP_PASSWORD:           ${{ secrets.SFTP_PASSWORD }}
           SFTP_REMOTE_DIR:         ${{ secrets.SFTP_REMOTE_DIR }}
-          SFTP_FILENAME_PATTERN:   ${{ secrets.SFTP_FILENAME_PATTERN }}
-          SFTP_DATE_FMT:           ${{ secrets.SFTP_DATE_FMT }}
           GOOGLE_CLIENT_ID:        ${{ secrets.GOOGLE_CLIENT_ID }}
           GOOGLE_CLIENT_SECRET:    ${{ secrets.GOOGLE_CLIENT_SECRET }}
           GOOGLE_REFRESH_TOKEN:    ${{ secrets.GOOGLE_REFRESH_TOKEN }}
