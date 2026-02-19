@@ -1,0 +1,33 @@
+name: CSV → Google Sheets (Daily)
+
+on:
+  schedule:
+    # 8:30 AM PST weekdays (30 min after the BAI pipeline so the CSV is already in Drive)
+    - cron: "30 16 * * 1-5"
+  workflow_dispatch:
+
+jobs:
+  process-csv:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Run CSV processor
+        env:
+          GOOGLE_CLIENT_ID:       ${{ secrets.GOOGLE_CLIENT_ID }}
+          GOOGLE_CLIENT_SECRET:   ${{ secrets.GOOGLE_CLIENT_SECRET }}
+          GOOGLE_REFRESH_TOKEN:   ${{ secrets.GOOGLE_REFRESH_TOKEN }}
+          GOOGLE_DRIVE_FOLDER_ID: ${{ secrets.GOOGLE_DRIVE_FOLDER_ID }}
+          GOOGLE_ARCHIVE_FOLDER_ID: ${{ secrets.GOOGLE_ARCHIVE_FOLDER_ID }}
+          GOOGLE_SHEET_ID:        ${{ secrets.GOOGLE_SHEET_ID }}
+          GOOGLE_SHEET_TAB:       input
+        run: python csv_processor.py
