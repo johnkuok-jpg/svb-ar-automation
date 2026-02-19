@@ -1,8 +1,5 @@
-streamlit
-pandas
-google-auth
-google-auth-oauthlib
-google-auth-httplib2
-gspread
-rapidfuzz
-google-api-python-client
+paramiko>=3.4.0
+google-auth>=2.29.0
+google-api-python-client>=2.126.0
+pandas>=2.2.0
+streamlit>=1.33.0

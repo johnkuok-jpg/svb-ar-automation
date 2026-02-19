@@ -1,0 +1,53 @@
+name: BAI - CSV - Google Drive (Daily)
+
+on:
+  schedule:
+    # 8:00 AM PST = 16:00 UTC (standard time) / 15:00 UTC (daylight saving)
+    # Using 16:00 UTC year-round; adjust to 15:00 UTC Mar-Nov if preferred
+    - cron: "0 16 * * 1-5"   # Weekdays only -- change to "* *" for 7 days
+  workflow_dispatch:           # Also allows manual trigger from GitHub UI
+
+jobs:
+  run-pipeline:
+    name: Pull BAI file, convert to CSV, upload to Drive
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: "pip"
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Write Google service account key
+        run: |
+          echo '${{ secrets.GOOGLE_SA_JSON }}' > /tmp/sa_key.json
+
+      - name: Run pipeline
+        env:
+          SFTP_HOST:               ${{ secrets.SFTP_HOST }}
+          SFTP_PORT:               ${{ secrets.SFTP_PORT }}
+          SFTP_USERNAME:           ${{ secrets.SFTP_USERNAME }}
+          SFTP_PASSWORD:           ${{ secrets.SFTP_PASSWORD }}
+          SFTP_REMOTE_DIR:         ${{ secrets.SFTP_REMOTE_DIR }}
+          SFTP_FILENAME_PATTERN:   ${{ secrets.SFTP_FILENAME_PATTERN }}
+          SFTP_DATE_FMT:           ${{ secrets.SFTP_DATE_FMT }}
+          GOOGLE_SA_FILE:          /tmp/sa_key.json
+          GOOGLE_DRIVE_FOLDER_ID:  ${{ secrets.GOOGLE_DRIVE_FOLDER_ID }}
+          LOCAL_WORK_DIR:          /tmp/bai_pipeline
+        run: python pipeline.py
+
+      - name: Upload CSV artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: bai-csvs-${{ github.run_id }}
+          path: /tmp/bai_pipeline/*.csv
+          retention-days: 7
