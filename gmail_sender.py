@@ -13,6 +13,7 @@ Required env vars / st.secrets:
 
 import base64
 import os
+from email.mime.application import MIMEApplication
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 
@@ -57,26 +58,38 @@ def _get_gmail_service():
     return build("gmail", "v1", credentials=creds)
 
 
-def send_email(to: str, subject: str, body: str, sender: str = None) -> dict:
+def send_email(to: str, subject: str, body: str, sender: str = None,
+               pdf_bytes: bytes = None, pdf_filename: str = None) -> dict:
     """
-    Send a plain-text email via Gmail API.
+    Send a plain-text email via Gmail API, with optional PDF attachment.
 
     Args:
-        to:      Recipient email address
-        subject: Email subject line
-        body:    Plain text email body
-        sender:  From address (defaults to GMAIL_SENDER env var or authenticated user)
+        to:           Recipient email address
+        subject:      Email subject line
+        body:         Plain text email body
+        sender:       From address (defaults to GMAIL_SENDER secret)
+        pdf_bytes:    Raw PDF bytes to attach (optional)
+        pdf_filename: Attachment filename, e.g. 'INV-1234.pdf' (optional)
 
     Returns:
         Gmail API message resource dict with 'id' and 'threadId'
     """
     from_addr = sender or _secret("GMAIL_SENDER", "me")
 
-    msg = MIMEMultipart("alternative")
+    msg = MIMEMultipart("mixed")
     msg["To"] = to
     msg["From"] = from_addr
     msg["Subject"] = subject
     msg.attach(MIMEText(body, "plain"))
+
+    if pdf_bytes:
+        part = MIMEApplication(pdf_bytes, _subtype="pdf")
+        part.add_header(
+            "Content-Disposition",
+            "attachment",
+            filename=pdf_filename or "invoice.pdf"
+        )
+        msg.attach(part)
 
     raw = base64.urlsafe_b64encode(msg.as_bytes()).decode()
     service = _get_gmail_service()

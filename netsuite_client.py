@@ -6,6 +6,7 @@ Uses Token-Based Authentication (TBA) with HMAC-SHA256 OAuth 1.0a signing.
 
 fetch_open_invoices()    → all invoices with foreignamountunpaid > 0
 fetch_past_due_invoices() → invoices where duedate < today, with billing email
+fetch_invoice_pdf()      → raw PDF bytes for a given invoice internal ID
 """
 
 import hashlib
@@ -40,8 +41,9 @@ CONSUMER_SECRET = _secret("NETSUITE_CONSUMER_SECRET")
 TOKEN_ID        = _secret("NETSUITE_TOKEN_ID")
 TOKEN_SECRET    = _secret("NETSUITE_TOKEN_SECRET")
 
-# NetSuite REST endpoint
+# NetSuite REST endpoints
 BASE_URL = f"https://{ACCOUNT_ID}.suitetalk.api.netsuite.com/services/rest/query/v1/suiteql"
+PDF_RESTLET_URL = f"https://{ACCOUNT_ID}.restlets.api.netsuite.com/app/site/hosting/restlet.nl?script=1737&deploy=1"
 INVOICE_URL_TEMPLATE = (
     f"https://{ACCOUNT_ID}.app.netsuite.com/app/accounting/transactions/custinvc.nl?id={{id}}&whence="
 )
@@ -128,26 +130,22 @@ def fetch_open_invoices() -> list[dict]:
     """
 
     url = BASE_URL
-    headers = {
-        "Authorization": _oauth_header("POST", url),
-        "Content-Type":  "application/json",
-        "Prefer":        "transient",
-    }
-    payload = {"q": query}
-
     invoices = []
     offset = 0
     limit = 1000
 
     while True:
         paginated_url = f"{url}?limit={limit}&offset={offset}"
-        headers["Authorization"] = _oauth_header("POST", paginated_url)
-        resp = requests.post(paginated_url, json=payload, headers=headers)
+        headers = {
+            "Authorization": _oauth_header("POST", paginated_url),
+            "Content-Type":  "application/json",
+            "Prefer":        "transient",
+        }
+        resp = requests.post(paginated_url, json={"q": query}, headers=headers)
         resp.raise_for_status()
         data = resp.json()
 
-        items = data.get("items", [])
-        for row in items:
+        for row in data.get("items", []):
             entity_name = row.get("altname") or row.get("entityid", "")
             invoices.append({
                 "id":               str(row.get("id", "")),
@@ -160,9 +158,7 @@ def fetch_open_invoices() -> list[dict]:
                 "netsuite_url":     INVOICE_URL_TEMPLATE.format(id=row.get("id", "")),
             })
 
-        # Pagination
-        has_more = data.get("hasMore", False)
-        if not has_more:
+        if not data.get("hasMore", False):
             break
         offset += limit
 
@@ -211,18 +207,16 @@ def fetch_past_due_invoices() -> list[dict]:
         resp.raise_for_status()
         data = resp.json()
 
-        from datetime import date
+        from datetime import date, datetime
         today = date.today()
 
         for row in data.get("items", []):
             entity_name = row.get("altname") or row.get("entityid", "")
 
-            # Calculate days overdue
             days_overdue = 0
             due_date_str = row.get("duedate", "")
             if due_date_str:
                 try:
-                    from datetime import datetime
                     due_dt = datetime.strptime(due_date_str, "%m/%d/%Y").date()
                     days_overdue = (today - due_dt).days
                 except ValueError:
@@ -247,3 +241,22 @@ def fetch_past_due_invoices() -> list[dict]:
         offset += limit
 
     return invoices
+
+
+def fetch_invoice_pdf(invoice_id: str) -> bytes:
+    """
+    Fetch a PDF for the given NetSuite invoice internal ID via the RESTlet.
+    Returns raw PDF bytes.
+    """
+    import base64
+    url = f"{PDF_RESTLET_URL}&invoiceId={invoice_id}"
+    headers = {
+        "Authorization": _oauth_header("GET", url),
+        "Content-Type":  "application/json",
+    }
+    resp = requests.get(url, headers=headers)
+    resp.raise_for_status()
+    data = resp.json()
+    if "error" in data:
+        raise RuntimeError(f"RESTlet error: {data['error']}")
+    return base64.b64decode(data["content"])

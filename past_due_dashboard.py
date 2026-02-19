@@ -6,6 +6,7 @@ Streamlit dashboard for past due AR invoices.
 - Fetches past due invoices from NetSuite
 - Shows table: Customer, Email, Invoice #, Amount Due, Due Date, Days Overdue
 - Click a row to open an editable email draft
+- Optionally attaches invoice PDF (fetched from NetSuite RESTlet)
 - Send triggers Gmail API (from john.kuok@perplexity.ai)
 - Logs every sent email to the email_log tab in Google Sheet
 - Shows full send history from email_log tab
@@ -31,7 +32,7 @@ from google.auth.transport.requests import Request
 from google.oauth2.credentials import Credentials
 from googleapiclient.discovery import build
 
-from netsuite_client import fetch_past_due_invoices
+from netsuite_client import fetch_past_due_invoices, fetch_invoice_pdf
 from gmail_sender import send_email
 
 # ── Page config ────────────────────────────────────────────────────────────────
@@ -59,7 +60,7 @@ def _secret(key: str, default: str = None) -> str:
 def _check_password():
     correct = _secret("DASHBOARD_PASSWORD", "")
     if not correct:
-        return  # No password configured — allow access
+        return
     if st.session_state.get("authenticated"):
         return
     st.title("💰 Past Due AR Dashboard")
@@ -239,16 +240,26 @@ with tab_invoices:
     body     = st.text_area("Message", value=default_body(selected_inv), height=300)
 
     col_send, col_ns = st.columns([1, 4])
-
     with col_send:
         send_clicked = st.button("Send Email", type="primary", use_container_width=True)
-
     with col_ns:
-        st.link_button(
-            "Open in NetSuite \u2197",
-            selected_inv["netsuite_url"],
-            use_container_width=False
-        )
+        st.link_button("Open in NetSuite \u2197", selected_inv["netsuite_url"])
+
+    # PDF attachment panel
+    with st.expander("📎 Attach Invoice PDF", expanded=True):
+        attach_pdf = st.checkbox("Attach PDF to email", value=True)
+        if st.button("Preview / Download PDF"):
+            with st.spinner("Fetching PDF from NetSuite..."):
+                try:
+                    pdf_data = fetch_invoice_pdf(selected_inv["id"])
+                    st.download_button(
+                        label="\u2b07\ufe0f Download PDF",
+                        data=pdf_data,
+                        file_name=f"{selected_inv['tranid']}.pdf",
+                        mime="application/pdf",
+                    )
+                except Exception as e:
+                    st.error(f"Could not fetch PDF: {e}")
 
     if send_clicked:
         if not to_email:
@@ -256,7 +267,18 @@ with tab_invoices:
         else:
             with st.spinner("Sending..."):
                 try:
-                    send_email(to=to_email, subject=subject, body=body, sender=SENDER)
+                    pdf_bytes = None
+                    pdf_filename = None
+                    if attach_pdf:
+                        try:
+                            pdf_bytes = fetch_invoice_pdf(selected_inv["id"])
+                            pdf_filename = f"{selected_inv['tranid']}.pdf"
+                        except Exception as e:
+                            st.warning(f"Could not fetch PDF, sending without attachment: {e}")
+                    send_email(
+                        to=to_email, subject=subject, body=body, sender=SENDER,
+                        pdf_bytes=pdf_bytes, pdf_filename=pdf_filename,
+                    )
                     _log_email(
                         invoice_id=selected_inv["tranid"],
                         customer=selected_inv["entity_name"],
@@ -264,7 +286,7 @@ with tab_invoices:
                         subject=subject,
                         body=body,
                     )
-                    st.success(f"Email sent to **{to_email}** and logged.")
+                    st.success(f"Email sent to **{to_email}**{' with PDF attached' if pdf_bytes else ''} and logged.")
                     st.cache_data.clear()
                 except Exception as e:
                     st.error(f"Failed to send: {e}")
