@@ -12,7 +12,7 @@ Streamlit dashboard for past due AR invoices.
 Run locally:
     streamlit run past_due_dashboard.py
 
-Required env vars (same as pipeline):
+Required env vars / st.secrets:
     NETSUITE_ACCOUNT_ID, NETSUITE_CONSUMER_KEY, NETSUITE_CONSUMER_SECRET
     NETSUITE_TOKEN_ID, NETSUITE_TOKEN_SECRET
     GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET, GOOGLE_REFRESH_TOKEN
@@ -39,15 +39,27 @@ st.set_page_config(
     layout="wide",
 )
 
-SHEET_ID  = os.environ.get("GOOGLE_SHEET_ID", "1PDLXi7ZQxvDSeUbdf7_5ft1Npq7oIBad9PgTl0R2CpM")
-LOG_TAB   = "email_log"
-SENDER    = os.environ.get("GMAIL_SENDER", "john.kuok@perplexity.ai")
 TOKEN_URI = "https://oauth2.googleapis.com/token"
 SCOPES    = [
     "https://www.googleapis.com/auth/gmail.send",
     "https://www.googleapis.com/auth/drive",
     "https://www.googleapis.com/auth/spreadsheets",
 ]
+LOG_TAB = "email_log"
+
+
+def _secret(key: str, default: str = None) -> str:
+    """Read from st.secrets (Streamlit Cloud) or os.environ (GitHub Actions / local)."""
+    if key in st.secrets:
+        return st.secrets[key]
+    val = os.environ.get(key, default)
+    if val is None:
+        raise KeyError(key)
+    return val
+
+
+SHEET_ID = _secret("GOOGLE_SHEET_ID", "1PDLXi7ZQxvDSeUbdf7_5ft1Npq7oIBad9PgTl0R2CpM")
+SENDER   = _secret("GMAIL_SENDER", "john.kuok@perplexity.ai")
 
 # ── Google Sheets helpers ──────────────────────────────────────────────────────
 
@@ -55,10 +67,10 @@ SCOPES    = [
 def _sheets_service():
     creds = Credentials(
         token=None,
-        refresh_token=os.environ["GOOGLE_REFRESH_TOKEN"],
+        refresh_token=_secret("GOOGLE_REFRESH_TOKEN"),
         token_uri=TOKEN_URI,
-        client_id=os.environ["GOOGLE_CLIENT_ID"],
-        client_secret=os.environ["GOOGLE_CLIENT_SECRET"],
+        client_id=_secret("GOOGLE_CLIENT_ID"),
+        client_secret=_secret("GOOGLE_CLIENT_SECRET"),
         scopes=SCOPES,
     )
     creds.refresh(Request())
@@ -120,7 +132,7 @@ def load_invoices():
 # ── Email draft helper ─────────────────────────────────────────────────────────
 
 def default_subject(inv: dict) -> str:
-    return f"Past Due Invoice {inv['tranid']} – {inv['entity_name']}"
+    return f"Past Due Invoice {inv['tranid']} \u2013 {inv['entity_name']}"
 
 
 def default_body(inv: dict) -> str:
@@ -136,14 +148,14 @@ To review the invoice, please visit: {inv['netsuite_url']}
 If you have any questions, please don't hesitate to reach out.
 
 Best regards,
-Perplexity AI — Accounts Receivable
+Perplexity AI \u2014 Accounts Receivable
 {SENDER}"""
 
 
 # ── UI ─────────────────────────────────────────────────────────────────────────
 
 st.title("💰 Past Due AR Dashboard")
-st.caption(f"Data refreshes every 5 minutes  ·  Sending from **{SENDER}**")
+st.caption(f"Data refreshes every 5 minutes  \u00b7  Sending from **{SENDER}**")
 
 # Ensure log tab exists
 _ensure_log_tab()
@@ -201,7 +213,7 @@ with tab_invoices:
 
     # Invoice selector
     invoice_options = {
-        f"{inv['tranid']} — {inv['entity_name']} (${inv['amount_due']:,.2f}, {inv['days_overdue']}d overdue)": inv
+        f"{inv['tranid']} \u2014 {inv['entity_name']} (${inv['amount_due']:,.2f}, {inv['days_overdue']}d overdue)": inv
         for inv in invoices
     }
     selected_label = st.selectbox("Select invoice", list(invoice_options.keys()))
@@ -219,7 +231,7 @@ with tab_invoices:
 
     with col_ns:
         st.link_button(
-            "Open in NetSuite ↗",
+            "Open in NetSuite \u2197",
             selected_inv["netsuite_url"],
             use_container_width=False
         )
