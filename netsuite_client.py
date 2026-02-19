@@ -28,7 +28,7 @@ TOKEN_SECRET    = os.environ["NETSUITE_TOKEN_SECRET"]
 # NetSuite REST endpoint
 BASE_URL = f"https://{ACCOUNT_ID}.suitetalk.api.netsuite.com/services/rest/query/v1/suiteql"
 INVOICE_URL_TEMPLATE = (
-    f"https://{ACCOUNT_ID}.app.netsuite.com/app/accounting/transactions/custinvc.nl?id={{id}}"
+    f"https://{ACCOUNT_ID}.app.netsuite.com/app/accounting/transactions/custinvc.nl?id={{id}}&whence="
 )
 
 
@@ -50,14 +50,23 @@ def _oauth_header(method: str, url: str) -> str:
         "oauth_version":          "1.0",
     }
 
-    # Signature base string
+    # Signature base string -- MUST use base URL only (no query string)
+    parsed = urllib.parse.urlparse(url)
+    base_url = urllib.parse.urlunparse(parsed._replace(query="", fragment=""))
+
+    # Include any URL query params in the signature params
+    all_sig_params = dict(oauth_params)
+    if parsed.query:
+        for k, v in urllib.parse.parse_qsl(parsed.query):
+            all_sig_params[k] = v
+
     sorted_params = "&".join(
         f"{urllib.parse.quote(k, safe='')}={urllib.parse.quote(v, safe='')}"
-        for k, v in sorted(oauth_params.items())
+        for k, v in sorted(all_sig_params.items())
     )
     base_string = "&".join([
         method.upper(),
-        urllib.parse.quote(url, safe=""),
+        urllib.parse.quote(base_url, safe=""),
         urllib.parse.quote(sorted_params, safe=""),
     ])
 
@@ -82,7 +91,7 @@ def _oauth_header(method: str, url: str) -> str:
 def fetch_open_invoices() -> list[dict]:
     """
     Return all open AR invoices from NetSuite.
-    Filters: type = CustInvc, status = open (remainingamount > 0).
+    Filters: type = CustInvc, foreignamountunpaid > 0 (amount still owed).
     """
     query = """
         SELECT
@@ -91,26 +100,19 @@ def fetch_open_invoices() -> list[dict]:
             t.trandate,
             t.duedate,
             t.foreigntotal,
-            t.amountremaining,
+            t.foreignamountunpaid,
             t.currency,
             e.entityid,
-            e.companyname,
-            e.firstname,
-            e.lastname
+            e.altname
         FROM transaction t
         LEFT JOIN entity e ON t.entity = e.id
         WHERE t.type = 'CustInvc'
-          AND t.amountremaining > 0
+          AND t.foreignamountunpaid > 0
           AND t.voided = 'F'
         ORDER BY t.trandate DESC
     """
 
     url = BASE_URL
-    headers = {
-        "Authorization": _oauth_header("POST", url),
-        "Content-Type":  "application/json",
-        "Prefer":        "transient",
-    }
     payload = {"q": query}
 
     invoices = []
@@ -119,24 +121,23 @@ def fetch_open_invoices() -> list[dict]:
 
     while True:
         paginated_url = f"{url}?limit={limit}&offset={offset}"
-        headers["Authorization"] = _oauth_header("POST", paginated_url)
+        headers = {
+            "Authorization": _oauth_header("POST", paginated_url),
+            "Content-Type":  "application/json",
+            "Prefer":        "transient",
+        }
         resp = requests.post(paginated_url, json=payload, headers=headers)
         resp.raise_for_status()
         data = resp.json()
 
         items = data.get("items", [])
         for row in items:
-            # Build display name: prefer companyname, fall back to first+last
-            entity_name = (
-                row.get("companyname")
-                or f"{row.get('firstname', '')} {row.get('lastname', '')}".strip()
-                or row.get("entityid", "")
-            )
+            entity_name = row.get("altname") or row.get("entityid", "")
             invoices.append({
                 "id":               str(row.get("id", "")),
                 "tranid":           row.get("tranid", ""),
                 "entity_name":      entity_name,
-                "amount_remaining": float(row.get("amountremaining", 0)),
+                "amount_remaining": float(row.get("foreignamountunpaid", 0)),
                 "currency":         row.get("currency", "USD"),
                 "trandate":         row.get("trandate", ""),
                 "due_date":         row.get("duedate", ""),
