@@ -1,11 +1,11 @@
 """
 netsuite_client.py
 
-Queries NetSuite for open AR invoices via SuiteQL REST API.
+Queries NetSuite for open and past due AR invoices via SuiteQL REST API.
 Uses Token-Based Authentication (TBA) with HMAC-SHA256 OAuth 1.0a signing.
 
-Returns a list of dicts with keys:
-    id, tranid, entity_name, amount_remaining, currency, due_date, netsuite_url
+fetch_open_invoices()    → all invoices with foreignamountunpaid > 0
+fetch_past_due_invoices() → invoices where duedate < today, with billing email
 """
 
 import hashlib
@@ -50,7 +50,7 @@ def _oauth_header(method: str, url: str) -> str:
         "oauth_version":          "1.0",
     }
 
-    # Signature base string -- MUST use base URL only (no query string)
+    # Signature base string — MUST use base URL only (no query string)
     parsed = urllib.parse.urlparse(url)
     base_url = urllib.parse.urlunparse(parsed._replace(query="", fragment=""))
 
@@ -91,7 +91,7 @@ def _oauth_header(method: str, url: str) -> str:
 def fetch_open_invoices() -> list[dict]:
     """
     Return all open AR invoices from NetSuite.
-    Filters: type = CustInvc, foreignamountunpaid > 0 (amount still owed).
+    Filters: type = CustInvc, status = open (remainingamount > 0).
     """
     query = """
         SELECT
@@ -113,6 +113,11 @@ def fetch_open_invoices() -> list[dict]:
     """
 
     url = BASE_URL
+    headers = {
+        "Authorization": _oauth_header("POST", url),
+        "Content-Type":  "application/json",
+        "Prefer":        "transient",
+    }
     payload = {"q": query}
 
     invoices = []
@@ -121,11 +126,7 @@ def fetch_open_invoices() -> list[dict]:
 
     while True:
         paginated_url = f"{url}?limit={limit}&offset={offset}"
-        headers = {
-            "Authorization": _oauth_header("POST", paginated_url),
-            "Content-Type":  "application/json",
-            "Prefer":        "transient",
-        }
+        headers["Authorization"] = _oauth_header("POST", paginated_url)
         resp = requests.post(paginated_url, json=payload, headers=headers)
         resp.raise_for_status()
         data = resp.json()
@@ -147,6 +148,86 @@ def fetch_open_invoices() -> list[dict]:
         # Pagination
         has_more = data.get("hasMore", False)
         if not has_more:
+            break
+        offset += limit
+
+    return invoices
+
+
+def fetch_past_due_invoices() -> list[dict]:
+    """
+    Return all past due AR invoices from NetSuite.
+    Filters: type = CustInvc, duedate < today, foreignamountunpaid > 0.
+    Also fetches billing email from the customer record.
+    """
+    query = """
+        SELECT
+            t.id,
+            t.tranid,
+            t.trandate,
+            t.duedate,
+            t.foreigntotal,
+            t.foreignamountunpaid,
+            t.currency,
+            e.entityid,
+            e.altname,
+            e.email
+        FROM transaction t
+        LEFT JOIN entity e ON t.entity = e.id
+        WHERE t.type = 'CustInvc'
+          AND t.foreignamountunpaid > 0
+          AND t.voided = 'F'
+          AND t.duedate < CURRENT_DATE
+        ORDER BY t.duedate ASC
+    """
+
+    invoices = []
+    offset = 0
+    limit = 1000
+
+    while True:
+        paginated_url = f"{BASE_URL}?limit={limit}&offset={offset}"
+        headers = {
+            "Authorization": _oauth_header("POST", paginated_url),
+            "Content-Type":  "application/json",
+            "Prefer":        "transient",
+        }
+        resp = requests.post(paginated_url, json={"q": query}, headers=headers)
+        resp.raise_for_status()
+        data = resp.json()
+
+        from datetime import date
+        today = date.today()
+
+        for row in data.get("items", []):
+            entity_name = row.get("altname") or row.get("entityid", "")
+
+            # Calculate days overdue
+            days_overdue = 0
+            due_date_str = row.get("duedate", "")
+            if due_date_str:
+                try:
+                    from datetime import datetime
+                    due_dt = datetime.strptime(due_date_str, "%m/%d/%Y").date()
+                    days_overdue = (today - due_dt).days
+                except ValueError:
+                    pass
+
+            invoices.append({
+                "id":               str(row.get("id", "")),
+                "tranid":           row.get("tranid", ""),
+                "entity_name":      entity_name,
+                "billing_email":    row.get("email", ""),
+                "amount_due":       float(row.get("foreignamountunpaid", 0)),
+                "invoice_total":    float(row.get("foreigntotal", 0)),
+                "currency":         row.get("currency", "USD"),
+                "trandate":         row.get("trandate", ""),
+                "due_date":         due_date_str,
+                "days_overdue":     days_overdue,
+                "netsuite_url":     INVOICE_URL_TEMPLATE.format(id=row.get("id", "")),
+            })
+
+        if not data.get("hasMore", False):
             break
         offset += limit
 

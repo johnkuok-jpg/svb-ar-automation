@@ -1,0 +1,71 @@
+"""
+gmail_sender.py
+
+Sends emails via the Gmail API using OAuth2.
+Reads credentials from environment variables (same pattern as pipeline.py).
+
+Required env vars:
+    GOOGLE_CLIENT_ID
+    GOOGLE_CLIENT_SECRET
+    GOOGLE_REFRESH_TOKEN
+    GMAIL_SENDER          (optional, defaults to authenticated user)
+"""
+
+import base64
+import os
+from email.mime.multipart import MIMEMultipart
+from email.mime.text import MIMEText
+
+from google.auth.transport.requests import Request
+from google.oauth2.credentials import Credentials
+from googleapiclient.discovery import build
+
+TOKEN_URI = "https://oauth2.googleapis.com/token"
+SCOPES = [
+    "https://www.googleapis.com/auth/gmail.send",
+    "https://www.googleapis.com/auth/drive",
+    "https://www.googleapis.com/auth/spreadsheets",
+]
+
+
+def _get_gmail_service():
+    creds = Credentials(
+        token=None,
+        refresh_token=os.environ["GOOGLE_REFRESH_TOKEN"],
+        token_uri=TOKEN_URI,
+        client_id=os.environ["GOOGLE_CLIENT_ID"],
+        client_secret=os.environ["GOOGLE_CLIENT_SECRET"],
+        scopes=SCOPES,
+    )
+    creds.refresh(Request())
+    return build("gmail", "v1", credentials=creds)
+
+
+def send_email(to: str, subject: str, body: str, sender: str = None) -> dict:
+    """
+    Send a plain-text email via Gmail API.
+
+    Args:
+        to:      Recipient email address
+        subject: Email subject line
+        body:    Plain text email body
+        sender:  From address (defaults to GMAIL_SENDER env var or authenticated user)
+
+    Returns:
+        Gmail API message resource dict with 'id' and 'threadId'
+    """
+    from_addr = sender or os.environ.get("GMAIL_SENDER", "me")
+
+    msg = MIMEMultipart("alternative")
+    msg["To"] = to
+    msg["From"] = from_addr
+    msg["Subject"] = subject
+    msg.attach(MIMEText(body, "plain"))
+
+    raw = base64.urlsafe_b64encode(msg.as_bytes()).decode()
+    service = _get_gmail_service()
+    result = service.users().messages().send(
+        userId="me",
+        body={"raw": raw}
+    ).execute()
+    return result
