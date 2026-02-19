@@ -1,6 +1,7 @@
 """
 sftp_client.py
-Downloads the prior-day BAI2 file from a bank SFTP server.
+Downloads the prior-day BAI2 file from SVB's SFTP server.
+Targets only the _PD_ (Prior Day) file for account ending in 34669.
 Auth: username + password.
 """
 
@@ -13,6 +14,9 @@ from typing import Optional
 import paramiko
 
 logger = logging.getLogger(__name__)
+
+# Target account suffix -- only pull the PD file for this account
+TARGET_ACCOUNT = "34669"
 
 
 def get_prior_day_str(fmt: str = "%Y%m%d") -> str:
@@ -35,24 +39,38 @@ def find_bai_file(
     date_str: str,
     filename_pattern: Optional[str] = None,
 ) -> Optional[str]:
-    files = sftp.listdir(remote_dir)
-    logger.info(f"Files in {remote_dir}: {files}")
+    """
+    Find the prior-day BAI file for account 34669.
 
+    SVB naming convention:
+        ARR_IR_GWperp5594_PD_YYYYMMDD_34669.TXT
+
+    Matches: _PD_ + date + _ + TARGET_ACCOUNT + .TXT
+    """
+    files = sftp.listdir(remote_dir)
+    logger.info(f"Files in {remote_dir}: {len(files)} total")
+
+    # Primary: match exact SVB PD pattern for target account
+    pattern = re.compile(
+        rf".*_PD_{re.escape(date_str)}_{re.escape(TARGET_ACCOUNT)}\.TXT$",
+        re.IGNORECASE,
+    )
+    for f in files:
+        if pattern.match(f):
+            logger.info(f"Matched target file: {f}")
+            return f"{remote_dir.rstrip('/')}/{f}"
+
+    # Fallback: if caller supplied a custom pattern
     if filename_pattern:
-        pattern = filename_pattern.replace("{date}", re.escape(date_str))
+        custom = filename_pattern.replace("{date}", re.escape(date_str))
         for f in files:
-            if re.fullmatch(pattern, f, re.IGNORECASE):
+            if re.fullmatch(custom, f, re.IGNORECASE):
+                logger.info(f"Matched via custom pattern: {f}")
                 return f"{remote_dir.rstrip('/')}/{f}"
 
-    for f in files:
-        if date_str in f and re.search(r"\.bai2?$", f, re.IGNORECASE):
-            return f"{remote_dir.rstrip('/')}/{f}"
-
-    for f in files:
-        if re.search(r"\.bai2?$", f, re.IGNORECASE):
-            logger.warning(f"Could not match date in filename; using first .bai file: {f}")
-            return f"{remote_dir.rstrip('/')}/{f}"
-
+    logger.warning(
+        f"No PD file found for account {TARGET_ACCOUNT} on {date_str} in {remote_dir}"
+    )
     return None
 
 
@@ -67,8 +85,8 @@ def download_bai_file(
     date_fmt: str = "%Y%m%d",
 ) -> str:
     """
-    Full SFTP download flow. Returns local file path of the downloaded BAI file.
-    Raises FileNotFoundError if the file cannot be located.
+    Full SFTP download flow. Returns local file path of the downloaded file.
+    Raises FileNotFoundError if the target file cannot be located.
     """
     os.makedirs(local_dir, exist_ok=True)
     date_str = get_prior_day_str(date_fmt)
@@ -78,8 +96,10 @@ def download_bai_file(
         remote_path = find_bai_file(sftp, remote_dir, date_str, filename_pattern)
         if not remote_path:
             raise FileNotFoundError(
-                f"No BAI file found for date {date_str} in {remote_dir}"
+                f"No prior-day file found for account {TARGET_ACCOUNT} "
+                f"on {date_str} in {remote_dir}"
             )
+
         filename = os.path.basename(remote_path)
         local_path = os.path.join(local_dir, filename)
         sftp.get(remote_path, local_path)
