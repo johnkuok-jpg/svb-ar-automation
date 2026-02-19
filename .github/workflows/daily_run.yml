@@ -1,13 +1,14 @@
-name: BAI - CSV - Google Drive (Daily)
+name: BAI -> CSV -> Google Drive -> Google Sheet (Daily)
 
 on:
   schedule:
+    # 8:00 AM PST weekdays = 16:00 UTC
     - cron: "0 16 * * 1-5"
   workflow_dispatch:
 
 jobs:
   run-pipeline:
-    name: Pull BAI file, convert to CSV, upload to Drive
+    name: Pull BAI file, convert to CSV, upload to Drive, append to Sheet
     runs-on: ubuntu-latest
     timeout-minutes: 15
 
@@ -19,25 +20,26 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: "3.11"
+          cache: "pip"
 
       - name: Install dependencies
         run: pip install -r requirements.txt
 
-      - name: Show sftp_client version
-        run: head -30 sftp_client.py
-
       - name: Run pipeline
         env:
-          SFTP_HOST:               ${{ secrets.SFTP_HOST }}
-          SFTP_PORT:               ${{ secrets.SFTP_PORT }}
-          SFTP_USERNAME:           ${{ secrets.SFTP_USERNAME }}
-          SFTP_PASSWORD:           ${{ secrets.SFTP_PASSWORD }}
-          SFTP_REMOTE_DIR:         ${{ secrets.SFTP_REMOTE_DIR }}
-          GOOGLE_CLIENT_ID:        ${{ secrets.GOOGLE_CLIENT_ID }}
-          GOOGLE_CLIENT_SECRET:    ${{ secrets.GOOGLE_CLIENT_SECRET }}
-          GOOGLE_REFRESH_TOKEN:    ${{ secrets.GOOGLE_REFRESH_TOKEN }}
-          GOOGLE_DRIVE_FOLDER_ID:  ${{ secrets.GOOGLE_DRIVE_FOLDER_ID }}
-          LOCAL_WORK_DIR:          /tmp/bai_pipeline
+          SFTP_HOST:                ${{ secrets.SFTP_HOST }}
+          SFTP_PORT:                ${{ secrets.SFTP_PORT }}
+          SFTP_USERNAME:            ${{ secrets.SFTP_USERNAME }}
+          SFTP_PASSWORD:            ${{ secrets.SFTP_PASSWORD }}
+          SFTP_REMOTE_DIR:          ${{ secrets.SFTP_REMOTE_DIR }}
+          GOOGLE_CLIENT_ID:         ${{ secrets.GOOGLE_CLIENT_ID }}
+          GOOGLE_CLIENT_SECRET:     ${{ secrets.GOOGLE_CLIENT_SECRET }}
+          GOOGLE_REFRESH_TOKEN:     ${{ secrets.GOOGLE_REFRESH_TOKEN }}
+          GOOGLE_DRIVE_FOLDER_ID:   ${{ secrets.GOOGLE_DRIVE_FOLDER_ID }}
+          GOOGLE_ARCHIVE_FOLDER_ID: ${{ secrets.GOOGLE_ARCHIVE_FOLDER_ID }}
+          GOOGLE_SHEET_ID:          ${{ secrets.GOOGLE_SHEET_ID }}
+          GOOGLE_SHEET_TAB:         input
+          LOCAL_WORK_DIR:           /tmp/bai_pipeline
         run: python pipeline.py
 
       - name: Upload CSV artifacts
