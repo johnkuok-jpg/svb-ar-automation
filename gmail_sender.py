@@ -4,7 +4,7 @@ gmail_sender.py
 Sends emails via the Gmail API using OAuth2.
 Reads credentials from environment variables (same pattern as pipeline.py).
 
-Required env vars:
+Required env vars / st.secrets:
     GOOGLE_CLIENT_ID
     GOOGLE_CLIENT_SECRET
     GOOGLE_REFRESH_TOKEN
@@ -21,6 +21,22 @@ from google.oauth2.credentials import Credentials
 from googleapiclient.discovery import build
 
 TOKEN_URI = "https://oauth2.googleapis.com/token"
+
+
+def _secret(key: str, default: str = None) -> str:
+    """Read from st.secrets (Streamlit Cloud) or os.environ (GitHub Actions / local)."""
+    try:
+        import streamlit as st
+        if key in st.secrets:
+            return st.secrets[key]
+    except Exception:
+        pass
+    val = os.environ.get(key, default)
+    if val is None:
+        raise KeyError(key)
+    return val
+
+
 SCOPES = [
     "https://www.googleapis.com/auth/gmail.send",
     "https://www.googleapis.com/auth/drive",
@@ -31,10 +47,10 @@ SCOPES = [
 def _get_gmail_service():
     creds = Credentials(
         token=None,
-        refresh_token=os.environ["GOOGLE_REFRESH_TOKEN"],
+        refresh_token=_secret("GOOGLE_REFRESH_TOKEN"),
         token_uri=TOKEN_URI,
-        client_id=os.environ["GOOGLE_CLIENT_ID"],
-        client_secret=os.environ["GOOGLE_CLIENT_SECRET"],
+        client_id=_secret("GOOGLE_CLIENT_ID"),
+        client_secret=_secret("GOOGLE_CLIENT_SECRET"),
         scopes=SCOPES,
     )
     creds.refresh(Request())
@@ -54,7 +70,7 @@ def send_email(to: str, subject: str, body: str, sender: str = None) -> dict:
     Returns:
         Gmail API message resource dict with 'id' and 'threadId'
     """
-    from_addr = sender or os.environ.get("GMAIL_SENDER", "me")
+    from_addr = sender or _secret("GMAIL_SENDER", "me")
 
     msg = MIMEMultipart("alternative")
     msg["To"] = to

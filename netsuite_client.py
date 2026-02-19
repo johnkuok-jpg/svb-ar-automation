@@ -19,11 +19,26 @@ from base64 import b64encode
 
 import requests
 
-ACCOUNT_ID = os.environ.get("NETSUITE_ACCOUNT_ID", "9060638")
-CONSUMER_KEY    = os.environ["NETSUITE_CONSUMER_KEY"]
-CONSUMER_SECRET = os.environ["NETSUITE_CONSUMER_SECRET"]
-TOKEN_ID        = os.environ["NETSUITE_TOKEN_ID"]
-TOKEN_SECRET    = os.environ["NETSUITE_TOKEN_SECRET"]
+
+def _secret(key: str, default: str = None) -> str:
+    """Read from st.secrets (Streamlit Cloud) or os.environ (GitHub Actions / local)."""
+    try:
+        import streamlit as st
+        if key in st.secrets:
+            return st.secrets[key]
+    except Exception:
+        pass
+    val = os.environ.get(key, default)
+    if val is None:
+        raise KeyError(key)
+    return val
+
+
+ACCOUNT_ID      = _secret("NETSUITE_ACCOUNT_ID", "9060638")
+CONSUMER_KEY    = _secret("NETSUITE_CONSUMER_KEY")
+CONSUMER_SECRET = _secret("NETSUITE_CONSUMER_SECRET")
+TOKEN_ID        = _secret("NETSUITE_TOKEN_ID")
+TOKEN_SECRET    = _secret("NETSUITE_TOKEN_SECRET")
 
 # NetSuite REST endpoint
 BASE_URL = f"https://{ACCOUNT_ID}.suitetalk.api.netsuite.com/services/rest/query/v1/suiteql"
