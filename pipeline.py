@@ -1,9 +1,11 @@
 """
 pipeline.py
 Main entry point. Pulls BAI2 from SFTP, converts to transactions CSV,
-uploads both the raw TXT and transactions CSV to Google Drive, then
-appends the transactions CSV to the target Google Sheet and moves the
-CSV to the archive folder.
+uploads both the raw TXT and transactions CSV to Google Drive,
+appends the transactions CSV to the Google Sheet (input tab),
+moves the CSV to the archive folder, then queries NetSuite for open
+AR invoices, fuzzy-matches them to the transactions, and writes the
+results to the cash_application tab with NetSuite deep links.
 
 All config is driven by environment variables (set as GitHub Secrets).
 
@@ -18,13 +20,18 @@ Required env vars:
     GOOGLE_REFRESH_TOKEN     Google OAuth2 refresh token
     GOOGLE_DRIVE_FOLDER_ID   Drive folder to receive raw TXT + transactions CSV
     GOOGLE_ARCHIVE_FOLDER_ID Drive folder to move CSV into after sheet append
-    GOOGLE_SHEET_ID          Google Spreadsheet ID to append transactions into
-    GOOGLE_SHEET_TAB         (optional) Sheet tab name, default: input
+    GOOGLE_SHEET_ID          Google Spreadsheet ID
+    GOOGLE_SHEET_TAB         (optional) Raw transactions tab, default: input
+    GOOGLE_SHEET_CA_TAB      (optional) Cash application tab, default: cash_application
+    NETSUITE_ACCOUNT_ID      NetSuite account ID (default: 9060638)
+    NETSUITE_CONSUMER_KEY    NetSuite TBA consumer key
+    NETSUITE_CONSUMER_SECRET NetSuite TBA consumer secret
+    NETSUITE_TOKEN_ID        NetSuite TBA token ID
+    NETSUITE_TOKEN_SECRET    NetSuite TBA token secret
     LOCAL_WORK_DIR           (optional) local temp directory, default /tmp/bai_pipeline
 """
 
 import csv
-import io
 import json
 import logging
 import os
@@ -36,11 +43,12 @@ import pandas as pd
 from google.auth.transport.requests import Request
 from google.oauth2.credentials import Credentials
 from googleapiclient.discovery import build
-from googleapiclient.http import MediaIoBaseDownload
 
 from bai2_parser import parse_bai2, file_to_transaction_rows
 from sftp_client import download_bai_file
 from drive_uploader import upload_to_drive
+from netsuite_client import fetch_open_invoices
+from matcher import match_transactions
 
 logging.basicConfig(
     level=logging.INFO,
@@ -50,7 +58,7 @@ logging.basicConfig(
 logger = logging.getLogger("pipeline")
 
 RUN_LOG_FILE = "run_log.json"
-TOKEN_URI = "https://oauth2.googleapis.com/token"
+TOKEN_URI    = "https://oauth2.googleapis.com/token"
 SCOPES = [
     "https://www.googleapis.com/auth/drive",
     "https://www.googleapis.com/auth/spreadsheets",
@@ -69,6 +77,10 @@ def get_config() -> dict:
         "GOOGLE_DRIVE_FOLDER_ID",
         "GOOGLE_ARCHIVE_FOLDER_ID",
         "GOOGLE_SHEET_ID",
+        "NETSUITE_CONSUMER_KEY",
+        "NETSUITE_CONSUMER_SECRET",
+        "NETSUITE_TOKEN_ID",
+        "NETSUITE_TOKEN_SECRET",
     ]
     config = {}
     missing = []
@@ -81,9 +93,11 @@ def get_config() -> dict:
     if missing:
         raise EnvironmentError(f"Missing required environment variables: {', '.join(missing)}")
 
-    config["SFTP_PORT"]        = int(os.environ.get("SFTP_PORT") or "22")
-    config["LOCAL_WORK_DIR"]   = os.environ.get("LOCAL_WORK_DIR") or "/tmp/bai_pipeline"
-    config["GOOGLE_SHEET_TAB"] = os.environ.get("GOOGLE_SHEET_TAB") or "input"
+    config["SFTP_PORT"]          = int(os.environ.get("SFTP_PORT") or "22")
+    config["LOCAL_WORK_DIR"]     = os.environ.get("LOCAL_WORK_DIR") or "/tmp/bai_pipeline"
+    config["GOOGLE_SHEET_TAB"]   = os.environ.get("GOOGLE_SHEET_TAB") or "input"
+    config["GOOGLE_SHEET_CA_TAB"] = os.environ.get("GOOGLE_SHEET_CA_TAB") or "cash_application"
+    config["NETSUITE_ACCOUNT_ID"] = os.environ.get("NETSUITE_ACCOUNT_ID") or "9060638"
     return config
 
 
@@ -114,14 +128,16 @@ def write_csv(rows: list, output_path: str) -> int:
     return len(rows)
 
 
-def append_to_sheet(sheets, spreadsheet_id: str, tab: str, csv_path: str) -> int:
-    """Append rows from a CSV file to the sheet tab. Returns row count appended."""
-    df = pd.read_csv(csv_path)
-    if df.empty:
-        logger.warning("CSV is empty - nothing to append to sheet")
+def append_to_sheet(sheets, spreadsheet_id: str, tab: str, rows: list[dict]) -> int:
+    """
+    Append rows (list of dicts) to a sheet tab.
+    Writes header if the sheet is empty.
+    Returns row count appended.
+    """
+    if not rows:
+        logger.warning(f"No rows to append to '{tab}'")
         return 0
 
-    # Check if sheet already has a header row
     result = (
         sheets.spreadsheets()
         .values()
@@ -130,22 +146,22 @@ def append_to_sheet(sheets, spreadsheet_id: str, tab: str, csv_path: str) -> int
     )
     has_header = bool(result.get("values"))
 
-    rows = []
+    values = []
     if not has_header:
-        rows.append(df.columns.tolist())
-    for _, row in df.iterrows():
-        rows.append([str(v) if pd.notna(v) else "" for v in row.tolist()])
+        values.append(list(rows[0].keys()))
+    for row in rows:
+        values.append([str(v) if v is not None and str(v) != "nan" else "" for v in row.values()])
 
     sheets.spreadsheets().values().append(
         spreadsheetId=spreadsheet_id,
         range=f"{tab}!A1",
         valueInputOption="USER_ENTERED",
         insertDataOption="INSERT_ROWS",
-        body={"values": rows},
+        body={"values": values},
     ).execute()
 
-    logger.info(f"Appended {len(df)} rows to '{tab}' tab")
-    return len(df)
+    logger.info(f"Appended {len(rows)} rows to '{tab}' tab")
+    return len(rows)
 
 
 def move_file_in_drive(drive, file_id: str, src_folder_id: str, dst_folder_id: str) -> None:
@@ -181,14 +197,16 @@ def run():
     os.makedirs(work_dir, exist_ok=True)
 
     log_entry = {
-        "started_at": started_at,
-        "status": "running",
-        "bai_file": None,
-        "transaction_rows": 0,
-        "raw_txt_drive_id": None,
+        "started_at":          started_at,
+        "status":              "running",
+        "bai_file":            None,
+        "transaction_rows":    0,
+        "raw_txt_drive_id":    None,
         "transactions_drive_id": None,
         "sheet_rows_appended": 0,
-        "error": None,
+        "invoices_fetched":    0,
+        "matches_found":       0,
+        "error":               None,
     }
 
     try:
@@ -247,9 +265,9 @@ def run():
         log_entry["transactions_drive_id"] = transactions_drive_id
 
         # ------------------------------------------------------------------
-        # 6. Append transactions CSV to Google Sheet
+        # 6. Append raw transactions to Google Sheet (input tab)
         # ------------------------------------------------------------------
-        logger.info("Step 6: Appending transactions to Google Sheet...")
+        logger.info("Step 6: Appending raw transactions to Google Sheet...")
         creds  = get_google_credentials(config)
         drive  = build("drive",  "v3", credentials=creds)
         sheets = build("sheets", "v4", credentials=creds)
@@ -258,7 +276,7 @@ def run():
             sheets,
             spreadsheet_id=config["GOOGLE_SHEET_ID"],
             tab=config["GOOGLE_SHEET_TAB"],
-            csv_path=transactions_csv,
+            rows=transaction_rows,
         )
 
         # ------------------------------------------------------------------
@@ -270,6 +288,34 @@ def run():
             file_id=transactions_drive_id,
             src_folder_id=config["GOOGLE_DRIVE_FOLDER_ID"],
             dst_folder_id=config["GOOGLE_ARCHIVE_FOLDER_ID"],
+        )
+
+        # ------------------------------------------------------------------
+        # 8. Fetch open AR invoices from NetSuite
+        # ------------------------------------------------------------------
+        logger.info("Step 8: Fetching open AR invoices from NetSuite...")
+        invoices = fetch_open_invoices()
+        log_entry["invoices_fetched"] = len(invoices)
+        logger.info(f"Fetched {len(invoices)} open invoices")
+
+        # ------------------------------------------------------------------
+        # 9. Match transactions to invoices
+        # ------------------------------------------------------------------
+        logger.info("Step 9: Matching transactions to invoices...")
+        matched_rows = match_transactions(transaction_rows, invoices)
+        matches_found = sum(1 for r in matched_rows if r.get("Invoice #"))
+        log_entry["matches_found"] = matches_found
+        logger.info(f"Matched {matches_found} of {len(matched_rows)} transactions")
+
+        # ------------------------------------------------------------------
+        # 10. Write matched results to cash_application tab
+        # ------------------------------------------------------------------
+        logger.info("Step 10: Writing cash application results to Google Sheet...")
+        append_to_sheet(
+            sheets,
+            spreadsheet_id=config["GOOGLE_SHEET_ID"],
+            tab=config["GOOGLE_SHEET_CA_TAB"],
+            rows=matched_rows,
         )
 
         log_entry["status"] = "success"

@@ -1,4 +1,4 @@
-name: BAI -> CSV -> Google Drive -> Google Sheet (Daily)
+name: BAI -> CSV -> Google Drive -> Google Sheet -> NetSuite Match (Daily)
 
 on:
   schedule:
@@ -8,7 +8,7 @@ on:
 
 jobs:
   run-pipeline:
-    name: Pull BAI file, convert to CSV, upload to Drive, append to Sheet
+    name: Pull BAI, parse, upload to Drive, append to Sheet, match to NetSuite invoices
     runs-on: ubuntu-latest
     timeout-minutes: 15
 
@@ -39,7 +39,13 @@ jobs:
           GOOGLE_ARCHIVE_FOLDER_ID: ${{ secrets.GOOGLE_ARCHIVE_FOLDER_ID }}
           GOOGLE_SHEET_ID:          ${{ secrets.GOOGLE_SHEET_ID }}
           GOOGLE_SHEET_TAB:         input
+          GOOGLE_SHEET_CA_TAB:      cash_application
           LOCAL_WORK_DIR:           /tmp/bai_pipeline
+          NETSUITE_ACCOUNT_ID:      9060638
+          NETSUITE_CONSUMER_KEY:    ${{ secrets.NETSUITE_CONSUMER_KEY }}
+          NETSUITE_CONSUMER_SECRET: ${{ secrets.NETSUITE_CONSUMER_SECRET }}
+          NETSUITE_TOKEN_ID:        ${{ secrets.NETSUITE_TOKEN_ID }}
+          NETSUITE_TOKEN_SECRET:    ${{ secrets.NETSUITE_TOKEN_SECRET }}
         run: python pipeline.py
 
       - name: Upload CSV artifacts
