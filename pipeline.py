@@ -11,7 +11,9 @@ Required env vars:
     SFTP_REMOTE_DIR         Remote directory containing BAI files
     SFTP_FILENAME_PATTERN   (optional) regex pattern, use {date} as placeholder
     SFTP_DATE_FMT           (optional) strftime format for date in filename, default %Y%m%d
-    GOOGLE_SA_FILE          Path to Google service account JSON key file
+    GOOGLE_CLIENT_ID        Google OAuth2 client ID
+    GOOGLE_CLIENT_SECRET    Google OAuth2 client secret
+    GOOGLE_REFRESH_TOKEN    Google OAuth2 refresh token (from one-time auth flow)
     GOOGLE_DRIVE_FOLDER_ID  Target Google Drive folder ID
     LOCAL_WORK_DIR          (optional) local temp directory, default /tmp/bai_pipeline
 """
@@ -31,7 +33,7 @@ from drive_uploader import upload_to_drive
 
 logging.basicConfig(
     level=logging.INFO,
-    format="%(asctime)s [%(levelname)s] %(name)s — %(message)s",
+    format="%(asctime)s [%(levelname)s] %(name)s - %(message)s",
     handlers=[logging.StreamHandler(sys.stdout)],
 )
 logger = logging.getLogger("pipeline")
@@ -45,7 +47,9 @@ def get_config() -> dict:
         "SFTP_USERNAME",
         "SFTP_PASSWORD",
         "SFTP_REMOTE_DIR",
-        "GOOGLE_SA_FILE",
+        "GOOGLE_CLIENT_ID",
+        "GOOGLE_CLIENT_SECRET",
+        "GOOGLE_REFRESH_TOKEN",
         "GOOGLE_DRIVE_FOLDER_ID",
     ]
     config = {}
@@ -59,15 +63,15 @@ def get_config() -> dict:
     if missing:
         raise EnvironmentError(f"Missing required environment variables: {', '.join(missing)}")
 
-    config["SFTP_PORT"]             = int(os.environ.get("SFTP_PORT", "22"))
-    config["SFTP_FILENAME_PATTERN"] = os.environ.get("SFTP_FILENAME_PATTERN")
-    config["SFTP_DATE_FMT"]         = os.environ.get("SFTP_DATE_FMT", "%Y%m%d")
-    config["LOCAL_WORK_DIR"]        = os.environ.get("LOCAL_WORK_DIR", "/tmp/bai_pipeline")
+    config["SFTP_PORT"]              = int(os.environ.get("SFTP_PORT", "22"))
+    config["SFTP_FILENAME_PATTERN"]  = os.environ.get("SFTP_FILENAME_PATTERN")
+    config["SFTP_DATE_FMT"]          = os.environ.get("SFTP_DATE_FMT", "%Y%m%d")
+    config["LOCAL_WORK_DIR"]         = os.environ.get("LOCAL_WORK_DIR", "/tmp/bai_pipeline")
+    config["GOOGLE_DRIVE_FOLDER_ID"] = os.environ.get("GOOGLE_DRIVE_FOLDER_ID")
     return config
 
 
 def write_csv(rows: list, output_path: str) -> int:
-    """Write list-of-dicts to CSV. Returns row count."""
     if not rows:
         logger.warning(f"No rows to write for {output_path}")
         Path(output_path).touch()
@@ -151,12 +155,10 @@ def run():
         log_entry["balances_drive_id"] = upload_to_drive(
             local_file_path=balances_csv,
             drive_folder_id=config["GOOGLE_DRIVE_FOLDER_ID"],
-            service_account_file=config["GOOGLE_SA_FILE"],
         )
         log_entry["transactions_drive_id"] = upload_to_drive(
             local_file_path=transactions_csv,
             drive_folder_id=config["GOOGLE_DRIVE_FOLDER_ID"],
-            service_account_file=config["GOOGLE_SA_FILE"],
         )
 
         log_entry["status"] = "success"

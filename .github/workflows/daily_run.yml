@@ -3,9 +3,8 @@ name: BAI - CSV - Google Drive (Daily)
 on:
   schedule:
     # 8:00 AM PST = 16:00 UTC (standard time) / 15:00 UTC (daylight saving)
-    # Using 16:00 UTC year-round; adjust to 15:00 UTC Mar-Nov if preferred
     - cron: "0 16 * * 1-5"   # Weekdays only -- change to "* *" for 7 days
-  workflow_dispatch:           # Also allows manual trigger from GitHub UI
+  workflow_dispatch:
 
 jobs:
   run-pipeline:
@@ -26,10 +25,6 @@ jobs:
       - name: Install dependencies
         run: pip install -r requirements.txt
 
-      - name: Write Google service account key
-        run: |
-          echo '${{ secrets.GOOGLE_SA_JSON }}' > /tmp/sa_key.json
-
       - name: Run pipeline
         env:
           SFTP_HOST:               ${{ secrets.SFTP_HOST }}
@@ -39,7 +34,9 @@ jobs:
           SFTP_REMOTE_DIR:         ${{ secrets.SFTP_REMOTE_DIR }}
           SFTP_FILENAME_PATTERN:   ${{ secrets.SFTP_FILENAME_PATTERN }}
           SFTP_DATE_FMT:           ${{ secrets.SFTP_DATE_FMT }}
-          GOOGLE_SA_FILE:          /tmp/sa_key.json
+          GOOGLE_CLIENT_ID:        ${{ secrets.GOOGLE_CLIENT_ID }}
+          GOOGLE_CLIENT_SECRET:    ${{ secrets.GOOGLE_CLIENT_SECRET }}
+          GOOGLE_REFRESH_TOKEN:    ${{ secrets.GOOGLE_REFRESH_TOKEN }}
           GOOGLE_DRIVE_FOLDER_ID:  ${{ secrets.GOOGLE_DRIVE_FOLDER_ID }}
           LOCAL_WORK_DIR:          /tmp/bai_pipeline
         run: python pipeline.py
