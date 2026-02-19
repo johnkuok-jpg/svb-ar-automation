@@ -2,8 +2,7 @@ name: BAI - CSV - Google Drive (Daily)
 
 on:
   schedule:
-    # 8:00 AM PST = 16:00 UTC (standard time) / 15:00 UTC (daylight saving)
-    - cron: "0 16 * * 1-5"   # Weekdays only -- change to "* *" for 7 days
+    - cron: "0 16 * * 1-5"
   workflow_dispatch:
 
 jobs:
@@ -20,10 +19,12 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: "3.11"
-          cache: "pip"
 
       - name: Install dependencies
         run: pip install -r requirements.txt
+
+      - name: Show sftp_client version
+        run: head -30 sftp_client.py
 
       - name: Run pipeline
         env:
