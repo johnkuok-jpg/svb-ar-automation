@@ -1,24 +1,12 @@
 """
 pipeline.py
-Main entry point. Pulls BAI2 from SFTP, converts to transactions CSV,
-and uploads both the raw TXT and transactions CSV to Google Drive.
-All config is driven by environment variables (set as GitHub Secrets).
+Pulls BAI2 from SVB SFTP, converts to transactions CSV,
+uploads raw TXT + CSV to Google Drive.
 
-Required env vars:
-    SFTP_HOST               Bank SFTP hostname
-    SFTP_PORT               Bank SFTP port (default 22)
-    SFTP_USERNAME           SFTP username
-    SFTP_PASSWORD           SFTP password
-    SFTP_REMOTE_DIR         Remote directory containing BAI files
-    GOOGLE_CLIENT_ID        Google OAuth2 client ID
-    GOOGLE_CLIENT_SECRET    Google OAuth2 client secret
-    GOOGLE_REFRESH_TOKEN    Google OAuth2 refresh token (from one-time auth flow)
-    GOOGLE_DRIVE_FOLDER_ID  Target Google Drive folder ID
-
-Optional env vars (safe to omit):
-    SFTP_FILENAME_PATTERN   regex pattern, use {date} as placeholder
-    SFTP_DATE_FMT           strftime format for date in filename (default: %Y%m%d)
-    LOCAL_WORK_DIR          local temp directory (default: /tmp/bai_pipeline)
+Required secrets (GitHub Actions):
+    SFTP_HOST, SFTP_PORT, SFTP_USERNAME, SFTP_PASSWORD, SFTP_REMOTE_DIR
+    GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET, GOOGLE_REFRESH_TOKEN
+    GOOGLE_DRIVE_FOLDER_ID
 """
 
 import csv
@@ -63,19 +51,14 @@ def get_config() -> dict:
         config[key] = val
 
     if missing:
-        raise EnvironmentError(f"Missing required environment variables: {', '.join(missing)}")
+        raise EnvironmentError(f"Missing required env vars: {', '.join(missing)}")
 
-    # Optional vars -- use `or` so empty strings fall back to defaults
-    config["SFTP_PORT"]              = int(os.environ.get("SFTP_PORT") or "22")
-    config["SFTP_FILENAME_PATTERN"]  = os.environ.get("SFTP_FILENAME_PATTERN") or None
-    config["SFTP_DATE_FMT"]          = os.environ.get("SFTP_DATE_FMT") or "%Y%m%d"
-    config["LOCAL_WORK_DIR"]         = os.environ.get("LOCAL_WORK_DIR") or "/tmp/bai_pipeline"
-    config["GOOGLE_DRIVE_FOLDER_ID"] = os.environ.get("GOOGLE_DRIVE_FOLDER_ID")
+    config["SFTP_PORT"]     = int(os.environ.get("SFTP_PORT") or "22")
+    config["LOCAL_WORK_DIR"] = os.environ.get("LOCAL_WORK_DIR") or "/tmp/bai_pipeline"
     return config
 
 
 def write_csv(rows: list, output_path: str) -> int:
-    """Write list-of-dicts to CSV. Returns row count."""
     if not rows:
         logger.warning(f"No rows to write for {output_path}")
         Path(output_path).touch()
@@ -129,8 +112,6 @@ def run():
             password=config["SFTP_PASSWORD"],
             remote_dir=config["SFTP_REMOTE_DIR"],
             local_dir=work_dir,
-            filename_pattern=config["SFTP_FILENAME_PATTERN"],
-            date_fmt=config["SFTP_DATE_FMT"],
         )
         log_entry["bai_file"] = os.path.basename(local_bai_path)
         logger.info(f"Downloaded: {local_bai_path}")
