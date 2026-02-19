@@ -1,6 +1,7 @@
 """
 pipeline.py
-Main entry point. Pulls BAI2 from SFTP, converts to CSV, uploads to Drive.
+Main entry point. Pulls BAI2 from SFTP, converts to transactions CSV,
+and uploads both the raw TXT and transactions CSV to Google Drive.
 All config is driven by environment variables (set as GitHub Secrets).
 
 Required env vars:
@@ -25,9 +26,8 @@ import os
 import sys
 from datetime import datetime
 from pathlib import Path
-from typing import Optional
 
-from bai2_parser import parse_bai2, file_to_balances_rows, file_to_transaction_rows
+from bai2_parser import parse_bai2, file_to_transaction_rows
 from sftp_client import download_bai_file
 from drive_uploader import upload_to_drive
 
@@ -72,6 +72,7 @@ def get_config() -> dict:
 
 
 def write_csv(rows: list, output_path: str) -> int:
+    """Write list-of-dicts to CSV. Returns row count."""
     if not rows:
         logger.warning(f"No rows to write for {output_path}")
         Path(output_path).touch()
@@ -109,14 +110,16 @@ def run():
         "started_at": started_at,
         "status": "running",
         "bai_file": None,
-        "balances_rows": 0,
         "transaction_rows": 0,
-        "balances_drive_id": None,
+        "raw_txt_drive_id": None,
         "transactions_drive_id": None,
         "error": None,
     }
 
     try:
+        # ------------------------------------------------------------------
+        # 1. Download raw TXT from SFTP
+        # ------------------------------------------------------------------
         logger.info("Step 1: Downloading BAI file from SFTP...")
         local_bai_path = download_bai_file(
             host=config["SFTP_HOST"],
@@ -131,31 +134,39 @@ def run():
         log_entry["bai_file"] = os.path.basename(local_bai_path)
         logger.info(f"Downloaded: {local_bai_path}")
 
-        logger.info("Step 2: Parsing BAI2 file...")
+        # ------------------------------------------------------------------
+        # 2. Upload raw TXT to Drive
+        # ------------------------------------------------------------------
+        logger.info("Step 2: Uploading raw TXT to Google Drive...")
+        log_entry["raw_txt_drive_id"] = upload_to_drive(
+            local_file_path=local_bai_path,
+            drive_folder_id=config["GOOGLE_DRIVE_FOLDER_ID"],
+            mime_type="text/plain",
+        )
+
+        # ------------------------------------------------------------------
+        # 3. Parse BAI2 - transactions only
+        # ------------------------------------------------------------------
+        logger.info("Step 3: Parsing BAI2 file...")
         with open(local_bai_path, "r", encoding="utf-8", errors="replace") as f:
             content = f.read()
 
         file_record = parse_bai2(content)
-        balance_rows = file_to_balances_rows(file_record)
         transaction_rows = file_to_transaction_rows(file_record)
-        logger.info(
-            f"Parsed {len(balance_rows)} balance rows, "
-            f"{len(transaction_rows)} transaction rows"
-        )
+        logger.info(f"Parsed {len(transaction_rows)} transaction rows")
 
-        logger.info("Step 3: Writing CSVs...")
+        # ------------------------------------------------------------------
+        # 4. Write transactions CSV
+        # ------------------------------------------------------------------
+        logger.info("Step 4: Writing transactions CSV...")
         base_name = Path(local_bai_path).stem
-        balances_csv     = os.path.join(work_dir, f"{base_name}_balances.csv")
         transactions_csv = os.path.join(work_dir, f"{base_name}_transactions.csv")
-
-        log_entry["balances_rows"]    = write_csv(balance_rows, balances_csv)
         log_entry["transaction_rows"] = write_csv(transaction_rows, transactions_csv)
 
-        logger.info("Step 4: Uploading to Google Drive...")
-        log_entry["balances_drive_id"] = upload_to_drive(
-            local_file_path=balances_csv,
-            drive_folder_id=config["GOOGLE_DRIVE_FOLDER_ID"],
-        )
+        # ------------------------------------------------------------------
+        # 5. Upload transactions CSV to Drive
+        # ------------------------------------------------------------------
+        logger.info("Step 5: Uploading transactions CSV to Google Drive...")
         log_entry["transactions_drive_id"] = upload_to_drive(
             local_file_path=transactions_csv,
             drive_folder_id=config["GOOGLE_DRIVE_FOLDER_ID"],
