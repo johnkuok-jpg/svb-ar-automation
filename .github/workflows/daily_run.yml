@@ -39,7 +39,7 @@ jobs:
           GOOGLE_ARCHIVE_FOLDER_ID: ${{ secrets.GOOGLE_ARCHIVE_FOLDER_ID }}
           GOOGLE_SHEET_ID:          ${{ secrets.GOOGLE_SHEET_ID }}
           GOOGLE_SHEET_TAB:         input
-          GOOGLE_SHEET_CA_TAB:      cash_application
+          GOOGLE_SHEET_CA_TAB:      netsuite_cash_app
           LOCAL_WORK_DIR:           /tmp/bai_pipeline
           NETSUITE_ACCOUNT_ID:      9060638
           NETSUITE_CONSUMER_KEY:    ${{ secrets.NETSUITE_CONSUMER_KEY }}
