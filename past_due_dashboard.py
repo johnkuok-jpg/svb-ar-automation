@@ -26,23 +26,22 @@ import os
 from datetime import datetime, timezone
 
 import pandas as pd
+import requests as _requests
 import streamlit as st
-from google.auth.transport.requests import AuthorizedSession, Request
+from google.auth.transport.requests import Request
 from google.oauth2.credentials import Credentials
-import googleapiclient.discovery
-import googleapiclient.http
 
 from netsuite_client import fetch_past_due_invoices, fetch_invoice_pdf
 from gmail_sender import send_email
 
-# ── Page config ───────────────────────────────────────────────────────────────────
+# ── Page config ───────────────────────────────────────────────────────────────
 st.set_page_config(
     page_title="Past Due AR Dashboard",
     page_icon="💰",
     layout="wide",
 )
 
-# ── Secrets helper ────────────────────────────────────────────────────────────────
+# ── Secrets helper ────────────────────────────────────────────────────────────
 def _secret(key: str, default: str = None) -> str:
     """Read from st.secrets (Streamlit Cloud) or os.environ (GitHub Actions / local)."""
     try:
@@ -55,11 +54,11 @@ def _secret(key: str, default: str = None) -> str:
         raise KeyError(key)
     return val
 
-# ── Password gate ─────────────────────────────────────────────────────────────────
+# ── Password gate ─────────────────────────────────────────────────────────────
 def _check_password():
     correct = _secret("DASHBOARD_PASSWORD", "")
     if not correct:
-        return  # No password configured — allow access
+        return
     if st.session_state.get("authenticated"):
         return
     st.title("💰 Past Due AR Dashboard")
@@ -74,9 +73,9 @@ def _check_password():
 
 _check_password()
 
-# ── Constants ─────────────────────────────────────────────────────────────────────
-TOKEN_URI = "https://oauth2.googleapis.com/token"
-SCOPES    = [
+# ── Constants ─────────────────────────────────────────────────────────────────
+TOKEN_URI   = "https://oauth2.googleapis.com/token"
+SCOPES      = [
     "https://www.googleapis.com/auth/gmail.send",
     "https://www.googleapis.com/auth/drive",
     "https://www.googleapis.com/auth/spreadsheets",
@@ -84,9 +83,11 @@ SCOPES    = [
 LOG_TAB  = "email_log"
 SHEET_ID = _secret("GOOGLE_SHEET_ID", "1PDLXi7ZQxvDSeUbdf7_5ft1Npq7oIBad9PgTl0R2CpM")
 SENDER   = _secret("GMAIL_SENDER", "john.kuok@perplexity.ai")
+SHEETS_BASE = "https://sheets.googleapis.com/v4/spreadsheets"
 
-# ── Google credentials helper ─────────────────────────────────────────────────────
+# ── Google credentials (requests-based, no httplib2) ─────────────────────────
 
+@st.cache_resource(show_spinner=False)
 def _get_creds() -> Credentials:
     """Return a valid, refreshed Google OAuth2 Credentials object."""
     creds = Credentials(
@@ -100,68 +101,74 @@ def _get_creds() -> Credentials:
     creds.refresh(Request())
     return creds
 
-# ── Google Sheets helpers ─────────────────────────────────────────────────────────
-
-@st.cache_resource(show_spinner=False)
-def _sheets_service():
-    """Build a Sheets API client using the requests-based transport (avoids httplib2 SSL issues)."""
+def _auth_headers() -> dict:
+    """Return Authorization headers with a fresh access token."""
     creds = _get_creds()
-    authed_session = AuthorizedSession(creds)
-    return googleapiclient.discovery.build(
-        "sheets", "v4",
-        credentials=creds,
-        # Force requests-based HTTP instead of httplib2
-        requestBuilder=googleapiclient.http.HttpRequest,
-    )
+    if not creds.valid:
+        creds.refresh(Request())
+    return {"Authorization": f"Bearer {creds.token}", "Content-Type": "application/json"}
+
+def _sheets_get(path: str, params: dict = None):
+    """GET request to Sheets REST API."""
+    r = _requests.get(f"{SHEETS_BASE}{path}", headers=_auth_headers(), params=params)
+    r.raise_for_status()
+    return r.json()
+
+def _sheets_post(path: str, json: dict):
+    """POST request to Sheets REST API."""
+    r = _requests.post(f"{SHEETS_BASE}{path}", headers=_auth_headers(), json=json)
+    r.raise_for_status()
+    return r.json()
+
+def _sheets_put(path: str, params: dict, json: dict):
+    """PUT request to Sheets REST API."""
+    r = _requests.put(f"{SHEETS_BASE}{path}", headers=_auth_headers(), params=params, json=json)
+    r.raise_for_status()
+    return r.json()
+
+# ── Google Sheets helpers ─────────────────────────────────────────────────────
 
 def _ensure_log_tab():
-    sheets = _sheets_service()
-    meta = sheets.spreadsheets().get(spreadsheetId=SHEET_ID).execute()
+    meta = _sheets_get(f"/{SHEET_ID}")
     existing = [s["properties"]["title"] for s in meta["sheets"]]
     if LOG_TAB not in existing:
-        sheets.spreadsheets().batchUpdate(
-            spreadsheetId=SHEET_ID,
-            body={"requests": [{"addSheet": {"properties": {"title": LOG_TAB}}}]}
-        ).execute()
-        sheets.spreadsheets().values().update(
-            spreadsheetId=SHEET_ID,
-            range=f"{LOG_TAB}!A1",
-            valueInputOption="RAW",
-            body={"values": [["Timestamp", "Sent By", "Invoice #", "Customer", "To Email", "Subject", "Body"]]}
-        ).execute()
+        _sheets_post(f"/{SHEET_ID}:batchUpdate", {
+            "requests": [{"addSheet": {"properties": {"title": LOG_TAB}}}]
+        })
+        _sheets_put(
+            f"/{SHEET_ID}/values/{LOG_TAB}!A1",
+            params={"valueInputOption": "RAW"},
+            json={"values": [["Timestamp", "Sent By", "Invoice #", "Customer", "To Email", "Subject", "Body"]]},
+        )
 
 def _log_email(invoice_id: str, customer: str, to_email: str, subject: str, body: str):
-    sheets = _sheets_service()
     ts = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S UTC")
-    sheets.spreadsheets().values().append(
-        spreadsheetId=SHEET_ID,
-        range=f"{LOG_TAB}!A1",
-        valueInputOption="RAW",
-        insertDataOption="INSERT_ROWS",
-        body={"values": [[ts, SENDER, invoice_id, customer, to_email, subject, body]]}
-    ).execute()
+    r = _requests.post(
+        f"{SHEETS_BASE}/{SHEET_ID}/values/{LOG_TAB}!A1:append",
+        headers=_auth_headers(),
+        params={"valueInputOption": "RAW", "insertDataOption": "INSERT_ROWS"},
+        json={"values": [[ts, SENDER, invoice_id, customer, to_email, subject, body]]},
+    )
+    r.raise_for_status()
 
 def _load_email_log() -> pd.DataFrame:
-    sheets = _sheets_service()
+    empty = pd.DataFrame(columns=["Timestamp", "Sent By", "Invoice #", "Customer", "To Email", "Subject", "Body"])
     try:
-        result = sheets.spreadsheets().values().get(
-            spreadsheetId=SHEET_ID,
-            range=f"{LOG_TAB}!A:G"
-        ).execute()
-        rows = result.get("values", [])
+        data = _sheets_get(f"/{SHEET_ID}/values/{LOG_TAB}!A:G")
+        rows = data.get("values", [])
         if len(rows) <= 1:
-            return pd.DataFrame(columns=["Timestamp", "Sent By", "Invoice #", "Customer", "To Email", "Subject", "Body"])
+            return empty
         return pd.DataFrame(rows[1:], columns=rows[0])
     except Exception:
-        return pd.DataFrame(columns=["Timestamp", "Sent By", "Invoice #", "Customer", "To Email", "Subject", "Body"])
+        return empty
 
-# ── NetSuite data ─────────────────────────────────────────────────────────────────
+# ── NetSuite data ─────────────────────────────────────────────────────────────
 
 @st.cache_data(ttl=300, show_spinner="Fetching past due invoices from NetSuite...")
 def load_invoices():
     return fetch_past_due_invoices()
 
-# ── Email draft helper ────────────────────────────────────────────────────────────
+# ── Email draft helpers ───────────────────────────────────────────────────────
 
 def default_subject(inv: dict) -> str:
     return f"Past Due Invoice {inv['tranid']} – {inv['entity_name']}"
@@ -180,7 +187,7 @@ Best regards,
 Perplexity AI — Accounts Receivable
 {SENDER}"""
 
-# ── UI ────────────────────────────────────────────────────────────────────────────
+# ── UI ────────────────────────────────────────────────────────────────────────
 
 st.title("💰 Past Due AR Dashboard")
 st.caption(f"Data refreshes every 5 minutes  ·  Sending from **{SENDER}**")
