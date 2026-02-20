@@ -27,21 +27,22 @@ from datetime import datetime, timezone
 
 import pandas as pd
 import streamlit as st
-from google.auth.transport.requests import Request
+from google.auth.transport.requests import AuthorizedSession, Request
 from google.oauth2.credentials import Credentials
-from googleapiclient.discovery import build
+import googleapiclient.discovery
+import googleapiclient.http
 
 from netsuite_client import fetch_past_due_invoices, fetch_invoice_pdf
 from gmail_sender import send_email
 
-# ── Page config ──────────────────────────────────────────────────────────────────
+# ── Page config ───────────────────────────────────────────────────────────────────
 st.set_page_config(
     page_title="Past Due AR Dashboard",
     page_icon="💰",
     layout="wide",
 )
 
-# ── Secrets helper ─────────────────────────────────────────────────────────────────
+# ── Secrets helper ────────────────────────────────────────────────────────────────
 def _secret(key: str, default: str = None) -> str:
     """Read from st.secrets (Streamlit Cloud) or os.environ (GitHub Actions / local)."""
     try:
@@ -54,7 +55,7 @@ def _secret(key: str, default: str = None) -> str:
         raise KeyError(key)
     return val
 
-# ── Password gate ──────────────────────────────────────────────────────────────────
+# ── Password gate ─────────────────────────────────────────────────────────────────
 def _check_password():
     correct = _secret("DASHBOARD_PASSWORD", "")
     if not correct:
@@ -73,7 +74,7 @@ def _check_password():
 
 _check_password()
 
-# ── Constants ────────────────────────────────────────────────────────────────────
+# ── Constants ─────────────────────────────────────────────────────────────────────
 TOKEN_URI = "https://oauth2.googleapis.com/token"
 SCOPES    = [
     "https://www.googleapis.com/auth/gmail.send",
@@ -84,10 +85,10 @@ LOG_TAB  = "email_log"
 SHEET_ID = _secret("GOOGLE_SHEET_ID", "1PDLXi7ZQxvDSeUbdf7_5ft1Npq7oIBad9PgTl0R2CpM")
 SENDER   = _secret("GMAIL_SENDER", "john.kuok@perplexity.ai")
 
-# ── Google Sheets helpers ────────────────────────────────────────────────────────
+# ── Google credentials helper ─────────────────────────────────────────────────────
 
-@st.cache_resource(show_spinner=False)
-def _sheets_service():
+def _get_creds() -> Credentials:
+    """Return a valid, refreshed Google OAuth2 Credentials object."""
     creds = Credentials(
         token=None,
         refresh_token=_secret("GOOGLE_REFRESH_TOKEN"),
@@ -97,7 +98,21 @@ def _sheets_service():
         scopes=SCOPES,
     )
     creds.refresh(Request())
-    return build("sheets", "v4", credentials=creds)
+    return creds
+
+# ── Google Sheets helpers ─────────────────────────────────────────────────────────
+
+@st.cache_resource(show_spinner=False)
+def _sheets_service():
+    """Build a Sheets API client using the requests-based transport (avoids httplib2 SSL issues)."""
+    creds = _get_creds()
+    authed_session = AuthorizedSession(creds)
+    return googleapiclient.discovery.build(
+        "sheets", "v4",
+        credentials=creds,
+        # Force requests-based HTTP instead of httplib2
+        requestBuilder=googleapiclient.http.HttpRequest,
+    )
 
 def _ensure_log_tab():
     sheets = _sheets_service()
@@ -140,13 +155,13 @@ def _load_email_log() -> pd.DataFrame:
     except Exception:
         return pd.DataFrame(columns=["Timestamp", "Sent By", "Invoice #", "Customer", "To Email", "Subject", "Body"])
 
-# ── NetSuite data ──────────────────────────────────────────────────────────────────
+# ── NetSuite data ─────────────────────────────────────────────────────────────────
 
 @st.cache_data(ttl=300, show_spinner="Fetching past due invoices from NetSuite...")
 def load_invoices():
     return fetch_past_due_invoices()
 
-# ── Email draft helper ───────────────────────────────────────────────────────────────
+# ── Email draft helper ────────────────────────────────────────────────────────────
 
 def default_subject(inv: dict) -> str:
     return f"Past Due Invoice {inv['tranid']} – {inv['entity_name']}"
@@ -165,7 +180,7 @@ Best regards,
 Perplexity AI — Accounts Receivable
 {SENDER}"""
 
-# ── UI ───────────────────────────────────────────────────────────────────────────
+# ── UI ────────────────────────────────────────────────────────────────────────────
 
 st.title("💰 Past Due AR Dashboard")
 st.caption(f"Data refreshes every 5 minutes  ·  Sending from **{SENDER}**")
