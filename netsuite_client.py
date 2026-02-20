@@ -174,7 +174,7 @@ def fetch_past_due_invoices() -> list[dict]:
     """
     Return all past due AR invoices from NetSuite.
     Filters: type = CustInvc, duedate < today, foreignamountunpaid > 0.
-    Pulls billing email from the invoice itself (t.email).
+    Pulls billing email from custbody_pplx_billing_email_addresses (custom field).
     """
     query = """
         SELECT
@@ -185,7 +185,7 @@ def fetch_past_due_invoices() -> list[dict]:
             t.foreigntotal,
             t.foreignamountunpaid,
             curr.symbol AS currency,
-            t.email,
+            t.custbody_pplx_billing_email_addresses AS billing_email,
             e.entityid,
             e.altname
         FROM transaction t
@@ -234,7 +234,7 @@ def fetch_past_due_invoices() -> list[dict]:
                 "id":               str(row.get("id", "")),
                 "tranid":           row.get("tranid", ""),
                 "entity_name":      entity_name,
-                "billing_email":    row.get("email", ""),
+                "billing_email":    row.get("billing_email", ""),
                 "amount_due":       float(row.get("foreignamountunpaid", 0)),
                 "invoice_total":    float(row.get("foreigntotal", 0)),
                 "currency":         row.get("currency", "USD"),
