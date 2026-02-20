@@ -1,1 +1,312 @@
-IiIiCnBhc3RfZHVlX2Rhc2hib2FyZC5weQoKU3RyZWFtbGl0IGRhc2hib2FyZCBmb3IgcGFzdCBkdWUgQVIgaW52b2ljZXMuCi0gUGFzc3dvcmQtcHJvdGVjdGVkIGxvZ2luCi0gRmV0Y2hlcyBwYXN0IGR1ZSBpbnZvaWNlcyBmcm9tIE5ldFN1aXRlCi0gU2hvd3MgdGFibGU6IEN1c3RvbWVyLCBFbWFpbCwgSW52b2ljZSAjLCBBbW91bnQgRHVlLCBEdWUgRGF0ZSwgRGF5cyBPdmVyZHVlCi0gQ2xpY2sgYSByb3cgdG8gb3BlbiBhbiBlZGl0YWJsZSBlbWFpbCBkcmFmdAotIFNlbmQgdHJpZ2dlcnMgR21haWwgQVBJIChmcm9tIGpvaG4ua3Vva0BwZXJwbGV4aXR5LmFpKQotIExvZ3MgZXZlcnkgc2VudCBlbWFpbCB0byB0aGUgZW1haWxfbG9nIHRhYiBpbiBHb29nbGUgU2hlZXQKLSBTaG93cyBmdWxsIHNlbmQgaGlzdG9yeSBmcm9tIGVtYWlsX2xvZyB0YWIKClJ1biBsb2NhbGx5OgogICAgc3RyZWFtbGl0IHJ1biBwYXN0X2R1ZV9kYXNoYm9hcmQucHkKClJlcXVpcmVkIGVudiB2YXJzIC8gc3Quc2VjcmV0czoKICAgIE5FVFNVSVRFX0FDQ09VTlRfSUQsIE5FVFNVSVRFX0NPTlNVTUVSX0tFWSwgTkVUU1VJVEVfQ09OU1VNRVJfU0VDUkVUCiAgICBORVRTVUlURV9UT0tFTl9JRCwgTkVUU1VJVEVfVE9LRU5fU0VDUkVUCiAgICBHT09HTEVfQ0xJRU5UX0lELCBHT09HTEVfQ0xJRU5UX1NFQ1JFVCwgR09PR0xFX1JFRlJFU0hfVE9LRU4KICAgIEdPT0dMRV9TSEVFVF9JRAogICAgR01BSUxfU0VOREVSICAgICAgIChvcHRpb25hbCwgZGVmYXVsdHMgdG8gam9obi5rdW9rQHBlcnBsZXhpdHkuYWkpCiAgICBEQVNIQk9BUkRfUEFTU1dPUkQgKHJlcXVpcmVkIOKAlCBibG9ja3MgYWNjZXNzIHdpdGhvdXQgcGFzc3dvcmQpCiIiIgoKaW1wb3J0IG9zCmZyb20gZGF0ZXRpbWUgaW1wb3J0IGRhdGV0aW1lLCB0aW1lem9uZQoKaW1wb3J0IHBhbmRhcyBhcyBwZAppbXBvcnQgc3RyZWFtbGl0IGFzIHN0CmZyb20gZ29vZ2xlLmF1dGgudHJhbnNwb3J0LnJlcXVlc3RzIGltcG9ydCBSZXF1ZXN0CmZyb20gZ29vZ2xlLm9hdXRoMi5jcmVkZW50aWFscyBpbXBvcnQgQ3JlZGVudGlhbHMKZnJvbSBnb29nbGVhcGljbGllbnQuZGlzY292ZXJ5IGltcG9ydCBidWlsZAoKZnJvbSBuZXRzdWl0ZV9jbGllbnQgaW1wb3J0IGZldGNoX3Bhc3RfZHVlX2ludm9pY2VzLCBmZXRjaF9pbnZvaWNlX3BkZgpmcm9tIGdtYWlsX3NlbmRlciBpbXBvcnQgc2VuZF9lbWFpbAoKIyDilIDilIAgUGFnZSBjb25maWcg4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSACnN0LnNldF9wYWdlX2NvbmZpZygKICAgIHBhZ2VfdGl0bGU9IlBhc3QgRHVlIEFSIERhc2hib2FyZCIsCiAgICBwYWdlX2ljb249IvCfkrAiLAogICAgbGF5b3V0PSJ3aWRlIiwKKQoKIyDilIDilIAgU2VjcmV0cyBoZWxwZXIg4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSACmRlZiBfc2VjcmV0KGtleTogc3RyLCBkZWZhdWx0OiBzdHIgPSBOb25lKSAtPiBzdHI6CiAgICAiIiJSZWFkIGZyb20gc3Quc2VjcmV0cyAoU3RyZWFtbGl0IENsb3VkKSBvciBvcy5lbnZpcm9uIChHaXRIdWIgQWN0aW9ucyAvIGxvY2FsKS4iIiIKICAgIHRyeToKICAgICAgICBpZiBrZXkgaW4gc3Quc2VjcmV0czoKICAgICAgICAgICAgcmV0dXJuIHN0LnNlY3JldHNba2V5XQogICAgZXhjZXB0IEV4Y2VwdGlvbjoKICAgICAgICBwYXNzCiAgICB2YWwgPSBvcy5lbnZpcm9uLmdldChrZXksIGRlZmF1bHQpCiAgICBpZiB2YWwgaXMgTm9uZToKICAgICAgICByYWlzZSBLZXlFcnJvcihrZXkpCiAgICByZXR1cm4gdmFsCgoKIyDilIDilIAgUGFzc3dvcmQgZ2F0ZSDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIAKZGVmIF9jaGVja19wYXNzd29yZCgpOgogICAgY29ycmVjdCA9IF9zZWNyZXQoIkRBU0hCT0FSRF9QQVNTV09SRCIsICIiKQogICAgaWYgbm90IGNvcnJlY3Q6CiAgICAgICAgcmV0dXJuICAjIE5vIHBhc3N3b3JkIGNvbmZpZ3VyZWQg4oCUIGFsbG93IGFjY2VzcwogICAgaWYgc3Quc2Vzc2lvbl9zdGF0ZS5nZXQoImF1dGhlbnRpY2F0ZWQiKToKICAgICAgICByZXR1cm4KICAgIHN0LnRpdGxlKCLwn5KwIFBhc3QgRHVlIEFSIERhc2hib2FyZCIpCiAgICBwd2QgPSBzdC50ZXh0X2lucHV0KCJQYXNzd29yZCIsIHR5cGU9InBhc3N3b3JkIikKICAgIGlmIHN0LmJ1dHRvbigiTG9naW4iKToKICAgICAgICBpZiBwd2QgPT0gY29ycmVjdDoKICAgICAgICAgICAgc3Quc2Vzc2lvbl9zdGF0ZVsiYXV0aGVudGljYXRlZCJdID0gVHJ1ZQogICAgICAgICAgICBzdC5yZXJ1bigpCiAgICAgICAgZWxzZToKICAgICAgICAgICAgc3QuZXJyb3IoIkluY29ycmVjdCBwYXNzd29yZC4iKQogICAgc3Quc3RvcCgpCgpfY2hlY2tfcGFzc3dvcmQoKQoKIyDilIDilIAgQ29uc3RhbnRzIOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgApUT0tFTl9VUkkgPSAiaHR0cHM6Ly9vYXV0aDIuZ29vZ2xlYXBpcy5jb20vdG9rZW4iClNDT1BFUyAgICA9IFsKICAgICJodHRwczovL3d3dy5nb29nbGVhcGlzLmNvbS9hdXRoL2dtYWlsLnNlbmQiLAogICAgImh0dHBzOi8vd3d3Lmdvb2dsZWFwaXMuY29tL2F1dGgvZHJpdmUiLAogICAgImh0dHBzOi8vd3d3Lmdvb2dsZWFwaXMuY29tL2F1dGgvc3ByZWFkc2hlZXRzIiwKXQpMT0dfVEFCICA9ICJlbWFpbF9sb2ciClNIRUVUX0lEID0gX3NlY3JldCgiR09PR0xFX1NIRUVUX0lEIiwgIjFQRExYaTdaUXh2RFNlVWJkZjdfNWZ0MU5wcTdvSUJhZDlQZ1RsMFIyQ3BNIikKU0VOREVSICAgPSBfc2VjcmV0KCJHTUFJTF9TRU5ERVIiLCAiam9obi5rdW9rQHBlcnBsZXhpdHkuYWkiKQoKIyDilIDilIAgR29vZ2xlIFNoZWV0cyBoZWxwZXJzIOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgAoKQHN0LmNhY2hlX3Jlc291cmNlKHNob3dfc3Bpbm5lcj1GYWxzZSkKZGVmIF9zaGVldHNfc2VydmljZSgpOgogICAgY3JlZHMgPSBDcmVkZW50aWFscygKICAgICAgICB0b2tlbj1Ob25lLAogICAgICAgIHJlZnJlc2hfdG9rZW49X3NlY3JldCgiR09PR0xFX1JFRlJFU0hfVE9LRU4iKSwKICAgICAgICB0b2tlbl91cmk9VE9LRU5fVVJJLAogICAgICAgIGNsaWVudF9pZD1fc2VjcmV0KCJHT09HTEVfQ0xJRU5UX0lEIiksCiAgICAgICAgY2xpZW50X3NlY3JldD1fc2VjcmV0KCJHT09HTEVfQ0xJRU5UX1NFQ1JFVCIpLAogICAgICAgIHNjb3Blcz1TQ09QRVMsCiAgICApCiAgICBjcmVkcy5yZWZyZXNoKFJlcXVlc3QoKSkKICAgIHJldHVybiBidWlsZCgic2hlZXRzIiwgInY0IiwgY3JlZGVudGlhbHM9Y3JlZHMpCgoKZGVmIF9lbnN1cmVfbG9nX3RhYigpOgogICAgc2hlZXRzID0gX3NoZWV0c19zZXJ2aWNlKCkKICAgIG1ldGEgPSBzaGVldHMuc3ByZWFkc2hlZXRzKCkuZ2V0KHNwcmVhZHNoZWV0SWQ9U0hFRVRfSUQpLmV4ZWN1dGUoKQogICAgZXhpc3RpbmcgPSBbc1sicHJvcGVydGllcyJdWyJ0aXRsZSJdIGZvciBzIGluIG1ldGFbInNoZWV0cyJdXQogICAgaWYgTE9HX1RBQiBub3QgaW4gZXhpc3Rpbmc6CiAgICAgICAgc2hlZXRzLnNwcmVhZHNoZWV0cygpLmJhdGNoVXBkYXRlKAogICAgICAgICAgICBzcHJlYWRzaGVldElkPVNIRUVUX0lELAogICAgICAgICAgICBib2R5PXsicmVxdWVzdHMiOiBbeyJhZGRTaGVldCI6IHsicHJvcGVydGllcyI6IHsidGl0bGUiOiBMT0dfVEFCfX19XX0KICAgICAgICApLmV4ZWN1dGUoKQogICAgICAgIHNoZWV0cy5zcHJlYWRzaGVldHMoKS52YWx1ZXMoKS51cGRhdGUoCiAgICAgICAgICAgIHNwcmVhZHNoZWV0SWQ9U0hFRVRfSUQsCiAgICAgICAgICAgIHJhbmdlPWYie0xPR19UQUJ9IUExIiwKICAgICAgICAgICAgdmFsdWVJbnB1dE9wdGlvbj0iUkFXIiwKICAgICAgICAgICAgYm9keT17InZhbHVlcyI6IFtbIlRpbWVzdGFtcCIsICJTZW50IEJ5IiwgIkludm9pY2UgIyIsICJDdXN0b21lciIsICJUbyBFbWFpbCIsICJTdWJqZWN0IiwgIkJvZHkiXV19CiAgICAgICAgKS5leGVjdXRlKCkKCgpkZWYgX2xvZ19lbWFpbChpbnZvaWNlX2lkOiBzdHIsIGN1c3RvbWVyOiBzdHIsIHRvX2VtYWlsOiBzdHIsIHN1YmplY3Q6IHN0ciwgYm9keTogc3RyKToKICAgIHNoZWV0cyA9IF9zaGVldHNfc2VydmljZSgpCiAgICB0cyA9IGRhdGV0aW1lLm5vdyh0aW1lem9uZS51dGMpLnN0cmZ0aW1lKCIlWS0lbS0lZCAlSDolTTolUyBVVEMiKQogICAgc2hlZXRzLnNwcmVhZHNoZWV0cygpLnZhbHVlcygpLmFwcGVuZCgKICAgICAgICBzcHJlYWRzaGVldElkPVNIRUVUX0lELAogICAgICAgIHJhbmdlPWYie0xPR19UQUJ9IUExIiwKICAgICAgICB2YWx1ZUlucHV0T3B0aW9uPSJSQVciLAogICAgICAgIGluc2VydERhdGFPcHRpb249IklOU0VSVF9ST1dTIiwKICAgICAgICBib2R5PXsidmFsdWVzIjogW1t0cywgU0VOREVSLCBpbnZvaWNlX2lkLCBjdXN0b21lciwgdG9fZW1haWwsIHN1YmplY3QsIGJvZHldXX0KICAgICkuZXhlY3V0ZSgpCgoKZGVmIF9sb2FkX2VtYWlsX2xvZygpIC0+IHBkLkRhdGFGcmFtZToKICAgIHNoZWV0cyA9IF9zaGVldHNfc2VydmljZSgpCiAgICB0cnk6CiAgICAgICAgcmVzdWx0ID0gc2hlZXRzLnNwcmVhZHNoZWV0cygpLnZhbHVlcygpLmdldCgKICAgICAgICAgICAgc3ByZWFkc2hlZXRJZD1TSEVFVF9JRCwKICAgICAgICAgICAgcmFuZ2U9ZiJ7TE9HX1RBQn0hQTpHIgogICAgICAgICkuZXhlY3V0ZSgpCiAgICAgICAgcm93cyA9IHJlc3VsdC5nZXQoInZhbHVlcyIsIFtdKQogICAgICAgIGlmIGxlbihyb3dzKSA8PSAxOgogICAgICAgICAgICByZXR1cm4gcGQuRGF0YUZyYW1lKGNvbHVtbnM9WyJUaW1lc3RhbXAiLCAiU2VudCBCeSIsICJJbnZvaWNlICMiLCAiQ3VzdG9tZXIiLCAiVG8gRW1haWwiLCAiU3ViamVjdCIsICJCb2R5Il0pCiAgICAgICAgcmV0dXJuIHBkLkRhdGFGcmFtZShyb3dzWzE6XSwgY29sdW1ucz1yb3dzWzBdKQogICAgZXhjZXB0IEV4Y2VwdGlvbjoKICAgICAgICByZXR1cm4gcGQuRGF0YUZyYW1lKGNvbHVtbnM9WyJUaW1lc3RhbXAiLCAiU2VudCBCeSIsICJJbnZvaWNlICMiLCAiQ3VzdG9tZXIiLCAiVG8gRW1haWwiLCAiU3ViamVjdCIsICJCb2R5Il0pCgoKIyDilIDilIAgTmV0U3VpdGUgZGF0YSDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIAKCkBzdC5jYWNoZV9kYXRhKHR0bD0zMDAsIHNob3dfc3Bpbm5lcj0iRmV0Y2hpbmcgcGFzdCBkdWUgaW52b2ljZXMgZnJvbSBOZXRTdWl0ZS4uLiIpCmRlZiBsb2FkX2ludm9pY2VzKCk6CiAgICByZXR1cm4gZmV0Y2hfcGFzdF9kdWVfaW52b2ljZXMoKQoKCiMg4pSA4pSAIEVtYWlsIGRyYWZ0IGhlbHBlciDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIAKCmRlZiBkZWZhdWx0X3N1YmplY3QoaW52OiBkaWN0KSAtPiBzdHI6CiAgICByZXR1cm4gZiJQYXN0IER1ZSBJbnZvaWNlIHtpbnZbJ3RyYW5pZCddfSBcdTIwMTMge2ludlsnZW50aXR5X25hbWUnXX0iCgoKZGVmIGRlZmF1bHRfYm9keShpbnY6IGRpY3QpIC0+IHN0cjoKICAgIGFtb3VudCA9IGYiJHtpbnZbJ2Ftb3VudF9kdWUnXTosLjJmfSB7aW52WydjdXJyZW5jeSddfSIKICAgIHJldHVybiBmIiIiSGksCgpJIGhvcGUgdGhpcyBtZXNzYWdlIGZpbmRzIHlvdSB3ZWxsLiBJJ20gcmVhY2hpbmcgb3V0IHJlZ2FyZGluZyBpbnZvaWNlIHtpbnZbJ3RyYW5pZCddfSBmb3Ige2Ftb3VudH0sIHdoaWNoIHdhcyBkdWUgb24ge2ludlsnZHVlX2RhdGUnXX0gKHtpbnZbJ2RheXNfb3ZlcmR1ZSddfSBkYXlzIGFnbykuCgpDb3VsZCB5b3UgcGxlYXNlIGxldCB1cyBrbm93IHRoZSBzdGF0dXMgb2YgdGhpcyBwYXltZW50PyBJZiB5b3UgaGF2ZSBhbHJlYWR5IHNlbnQgaXQsIHBsZWFzZSBkaXNyZWdhcmQgdGhpcyBtZXNzYWdlLgoKSWYgeW91IGhhdmUgYW55IHF1ZXN0aW9ucyBvciBuZWVkIGEgY29weSBvZiB0aGUgaW52b2ljZSwgcGxlYXNlIGRvbid0IGhlc2l0YXRlIHRvIHJlYWNoIG91dC4KCkJlc3QgcmVnYXJkcywKUGVycGxleGl0eSBBSSBcdTIwMTQgQWNjb3VudHMgUmVjZWl2YWJsZQp7U0VOREVSfSIiIgoKCiMg4pSA4pSAIFVJIOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgAoKc3QudGl0bGUoIvCfkrAgUGFzdCBEdWUgQVIgRGFzaGJvYXJkIikKc3QuY2FwdGlvbihmIkRhdGEgcmVmcmVzaGVzIGV2ZXJ5IDUgbWludXRlcyAgXHUwMGI3ICBTZW5kaW5nIGZyb20gKip7U0VOREVSfSoqIikKCl9lbnN1cmVfbG9nX3RhYigpCgp0YWJfaW52b2ljZXMsIHRhYl9sb2cgPSBzdC50YWJzKFsi8J+TiyBQYXN0IER1ZSBJbnZvaWNlcyIsICLwn5OoIEVtYWlsIExvZyJdKQoKd2l0aCB0YWJfaW52b2ljZXM6CiAgICB3aXRoIHN0LnNwaW5uZXIoIkxvYWRpbmcgaW52b2ljZXMuLi4iKToKICAgICAgICBpbnZvaWNlcyA9IGxvYWRfaW52b2ljZXMoKQoKICAgIGlmIG5vdCBpbnZvaWNlczoKICAgICAgICBzdC5zdWNjZXNzKCJObyBwYXN0IGR1ZSBpbnZvaWNlcyBmb3VuZC4iKQogICAgICAgIHN0LnN0b3AoKQoKICAgIGRmID0gcGQuRGF0YUZyYW1lKGludm9pY2VzKQoKICAgIGNvbDEsIGNvbDIsIGNvbDMgPSBzdC5jb2x1bW5zKDMpCiAgICBjb2wxLm1ldHJpYygiUGFzdCBEdWUgSW52b2ljZXMiLCBsZW4oZGYpKQogICAgY29sMi5tZXRyaWMoIlRvdGFsIEFtb3VudCBEdWUiLCBmIiR7ZGZbJ2Ftb3VudF9kdWUnXS5zdW0oKTosLjJmfSIpCiAgICBjb2wzLm1ldHJpYygiQXZnIERheXMgT3ZlcmR1ZSIsIGYie2RmWydkYXlzX292ZXJkdWUnXS5tZWFuKCk6LjBmfSBkYXlzIikKCiAgICBzdC5kaXZpZGVyKCkKCiAgICBkZWYgaGlnaGxpZ2h0X292ZXJkdWUodmFsKToKICAgICAgICBpZiBpc2luc3RhbmNlKHZhbCwgKGludCwgZmxvYXQpKToKICAgICAgICAgICAgaWYgdmFsID4gOTA6CiAgICAgICAgICAgICAgICByZXR1cm4gImJhY2tncm91bmQtY29sb3I6ICNmZmQ2ZDYiCiAgICAgICAgICAgIGVsaWYgdmFsID4gMzA6CiAgICAgICAgICAgICAgICByZXR1cm4gImJhY2tncm91bmQtY29sb3I6ICNmZmYzY2QiCiAgICAgICAgcmV0dXJuICIiCgogICAgZGlzcGxheV9kZiA9IGRmW1sKICAgICAgICAidHJhbmlkIiwgImVudGl0eV9uYW1lIiwgImJpbGxpbmdfZW1haWwiLAogICAgICAgICJhbW91bnRfZHVlIiwgImR1ZV9kYXRlIiwgImRheXNfb3ZlcmR1ZSIKICAgIF1dLnJlbmFtZShjb2x1bW5zPXsKICAgICAgICAidHJhbmlkIjogICAgICAgICJJbnZvaWNlICMiLAogICAgICAgICJlbnRpdHlfbmFtZSI6ICAgIkN1c3RvbWVyIiwKICAgICAgICAiYmlsbGluZ19lbWFpbCI6ICJCaWxsaW5nIEVtYWlsIiwKICAgICAgICAiYW1vdW50X2R1ZSI6ICAgICJBbW91bnQgRHVlIiwKICAgICAgICAiZHVlX2RhdGUiOiAgICAgICJEdWUgRGF0ZSIsCiAgICAgICAgImRheXNfb3ZlcmR1ZSI6ICAiRGF5cyBPdmVyZHVlIiwKICAgIH0pCgogICAgc3R5bGVkID0gZGlzcGxheV9kZi5zdHlsZS5hcHBseW1hcChoaWdobGlnaHRfb3ZlcmR1ZSwgc3Vic2V0PVsiRGF5cyBPdmVyZHVlIl0pIFwKICAgICAgICAuZm9ybWF0KHsiQW1vdW50IER1ZSI6ICIkezosLjJmfSJ9KQoKICAgIHN0LmRhdGFmcmFtZShzdHlsZWQsIHVzZV9jb250YWluZXJfd2lkdGg9VHJ1ZSwgaGlkZV9pbmRleD1UcnVlKQoKICAgIHN0LmRpdmlkZXIoKQogICAgc3Quc3ViaGVhZGVyKCLinInvuI8gU2VuZCBGb2xsb3ctVXAgRW1haWwiKQoKICAgIGludm9pY2Vfb3B0aW9ucyA9IHsKICAgICAgICBmIntpbnZbJ3RyYW5pZCddfSBcdTIwMTQge2ludlsnZW50aXR5X25hbWUnXX0gKCR7aW52WydhbW91bnRfZHVlJ106LC4yZn0sIHtpbnZbJ2RheXNfb3ZlcmR1ZSddfWQgb3ZlcmR1ZSkiOiBpbnYKICAgICAgICBmb3IgaW52IGluIGludm9pY2VzCiAgICB9CiAgICBzZWxlY3RlZF9sYWJlbCA9IHN0LnNlbGVjdGJveCgiU2VsZWN0IGludm9pY2UiLCBsaXN0KGludm9pY2Vfb3B0aW9ucy5rZXlzKCkpKQogICAgc2VsZWN0ZWRfaW52ID0gaW52b2ljZV9vcHRpb25zW3NlbGVjdGVkX2xhYmVsXQoKICAgIHRvX2VtYWlsID0gc3QudGV4dF9pbnB1dCgiVG8iLCB2YWx1ZT1zZWxlY3RlZF9pbnYuZ2V0KCJiaWxsaW5nX2VtYWlsIiwgIiIpKQogICAgc3ViamVjdCAgPSBzdC50ZXh0X2lucHV0KCJTdWJqZWN0IiwgdmFsdWU9ZGVmYXVsdF9zdWJqZWN0KHNlbGVjdGVkX2ludikpCiAgICBib2R5ICAgICA9IHN0LnRleHRfYXJlYSgiTWVzc2FnZSIsIHZhbHVlPWRlZmF1bHRfYm9keShzZWxlY3RlZF9pbnYpLCBoZWlnaHQ9MzAwKQoKICAgIGNvbF9zZW5kLCBjb2xfbnMgPSBzdC5jb2x1bW5zKFsxLCA0XSkKCiAgICB3aXRoIGNvbF9zZW5kOgogICAgICAgIHNlbmRfY2xpY2tlZCA9IHN0LmJ1dHRvbigiU2VuZCBFbWFpbCIsIHR5cGU9InByaW1hcnkiLCB1c2VfY29udGFpbmVyX3dpZHRoPVRydWUpCgogICAgd2l0aCBjb2xfbnM6CiAgICAgICAgc3QubGlua19idXR0b24oCiAgICAgICAgICAgICJPcGVuIGluIE5ldFN1aXRlIFx1MjE5NyIsCiAgICAgICAgICAgIHNlbGVjdGVkX2ludlsibmV0c3VpdGVfdXJsIl0sCiAgICAgICAgICAgIHVzZV9jb250YWluZXJfd2lkdGg9RmFsc2UKICAgICAgICApCgogICAgIyBQREYgcHJldmlldyAvIGRvd25sb2FkCiAgICB3aXRoIHN0LmV4cGFuZGVyKCLwn5OOIEF0dGFjaCBJbnZvaWNlIFBERiIsIGV4cGFuZGVkPVRydWUpOgogICAgICAgIGF0dGFjaF9wZGYgPSBzdC5jaGVja2JveCgiQXR0YWNoIFBERiB0byBlbWFpbCIsIHZhbHVlPVRydWUpCiAgICAgICAgaWYgc3QuYnV0dG9uKCJQcmV2aWV3IC8gRG93bmxvYWQgUERGIik6CiAgICAgICAgICAgIHdpdGggc3Quc3Bpbm5lcigiRmV0Y2hpbmcgUERGIGZyb20gTmV0U3VpdGUuLi4iKToKICAgICAgICAgICAgICAgIHRyeToKICAgICAgICAgICAgICAgICAgICBwZGZfZGF0YSA9IGZldGNoX2ludm9pY2VfcGRmKHNlbGVjdGVkX2ludlsiaWQiXSkKICAgICAgICAgICAgICAgICAgICBzdC5kb3dubG9hZF9idXR0b24oCiAgICAgICAgICAgICAgICAgICAgICAgIGxhYmVsPSLirIfvuI8gRG93bmxvYWQgUERGIiwKICAgICAgICAgICAgICAgICAgICAgICAgZGF0YT1wZGZfZGF0YSwKICAgICAgICAgICAgICAgICAgICAgICAgZmlsZV9uYW1lPWYie3NlbGVjdGVkX2ludlsndHJhbmlkJ119LnBkZiIsCiAgICAgICAgICAgICAgICAgICAgICAgIG1pbWU9ImFwcGxpY2F0aW9uL3BkZiIsCiAgICAgICAgICAgICAgICAgICAgKQogICAgICAgICAgICAgICAgZXhjZXB0IEV4Y2VwdGlvbiBhcyBlOgogICAgICAgICAgICAgICAgICAgIHN0LmVycm9yKGYiQ291bGQgbm90IGZldGNoIFBERjoge2V9IikKCiAgICBpZiBzZW5kX2NsaWNrZWQ6CiAgICAgICAgaWYgbm90IHRvX2VtYWlsOgogICAgICAgICAgICBzdC5lcnJvcigiTm8gYmlsbGluZyBlbWFpbCBvbiBmaWxlIGZvciB0aGlzIGN1c3RvbWVyLiBQbGVhc2UgZW50ZXIgb25lIG1hbnVhbGx5LiIpCiAgICAgICAgZWxzZToKICAgICAgICAgICAgd2l0aCBzdC5zcGlubmVyKCJTZW5kaW5nLi4uIik6CiAgICAgICAgICAgICAgICB0cnk6CiAgICAgICAgICAgICAgICAgICAgcGRmX2J5dGVzID0gTm9uZQogICAgICAgICAgICAgICAgICAgIHBkZl9maWxlbmFtZSA9IE5vbmUKICAgICAgICAgICAgICAgICAgICBpZiBhdHRhY2hfcGRmOgogICAgICAgICAgICAgICAgICAgICAgICB0cnk6CiAgICAgICAgICAgICAgICAgICAgICAgICAgICBwZGZfYnl0ZXMgPSBmZXRjaF9pbnZvaWNlX3BkZihzZWxlY3RlZF9pbnZbImlkIl0pCiAgICAgICAgICAgICAgICAgICAgICAgICAgICBwZGZfZmlsZW5hbWUgPSBmIntzZWxlY3RlZF9pbnZbJ3RyYW5pZCddfS5wZGYiCiAgICAgICAgICAgICAgICAgICAgICAgIGV4Y2VwdCBFeGNlcHRpb24gYXMgZToKICAgICAgICAgICAgICAgICAgICAgICAgICAgIHN0Lndhcm5pbmcoZiJDb3VsZCBub3QgZmV0Y2ggUERGLCBzZW5kaW5nIHdpdGhvdXQgYXR0YWNobWVudDoge2V9IikKICAgICAgICAgICAgICAgICAgICBzZW5kX2VtYWlsKAogICAgICAgICAgICAgICAgICAgICAgICB0bz10b19lbWFpbCwgc3ViamVjdD1zdWJqZWN0LCBib2R5PWJvZHksIHNlbmRlcj1TRU5ERVIsCiAgICAgICAgICAgICAgICAgICAgICAgIHBkZl9ieXRlcz1wZGZfYnl0ZXMsIHBkZl9maWxlbmFtZT1wZGZfZmlsZW5hbWUsCiAgICAgICAgICAgICAgICAgICAgKQogICAgICAgICAgICAgICAgICAgIF9sb2dfZW1haWwoCiAgICAgICAgICAgICAgICAgICAgICAgIGludm9pY2VfaWQ9c2VsZWN0ZWRfaW52WyJ0cmFuaWQiXSwKICAgICAgICAgICAgICAgICAgICAgICAgY3VzdG9tZXI9c2VsZWN0ZWRfaW52WyJlbnRpdHlfbmFtZSJdLAogICAgICAgICAgICAgICAgICAgICAgICB0b19lbWFpbD10b19lbWFpbCwKICAgICAgICAgICAgICAgICAgICAgICAgc3ViamVjdD1zdWJqZWN0LAogICAgICAgICAgICAgICAgICAgICAgICBib2R5PWJvZHksCiAgICAgICAgICAgICAgICAgICAgKQogICAgICAgICAgICAgICAgICAgIHN0LnN1Y2Nlc3MoZiJFbWFpbCBzZW50IHRvICoqe3RvX2VtYWlsfSoqeycgd2l0aCBQREYgYXR0YWNoZWQnIGlmIHBkZl9ieXRlcyBlbHNlICcnfSBhbmQgbG9nZ2VkLiIpCiAgICAgICAgICAgICAgICAgICAgc3QuY2FjaGVfZGF0YS5jbGVhcigpCiAgICAgICAgICAgICAgICBleGNlcHQgRXhjZXB0aW9uIGFzIGU6CiAgICAgICAgICAgICAgICAgICAgc3QuZXJyb3IoZiJGYWlsZWQgdG8gc2VuZDoge2V9IikKCndpdGggdGFiX2xvZzoKICAgIHN0LnN1YmhlYWRlcigi8J+TqCBFbWFpbCBTZW5kIEhpc3RvcnkiKQogICAgd2l0aCBzdC5zcGlubmVyKCJMb2FkaW5nIGxvZy4uLiIpOgogICAgICAgIGxvZ19kZiA9IF9sb2FkX2VtYWlsX2xvZygpCgogICAgaWYgbG9nX2RmLmVtcHR5OgogICAgICAgIHN0LmluZm8oIk5vIGVtYWlscyBzZW50IHlldC4iKQogICAgZWxzZToKICAgICAgICBzdC5kYXRhZnJhbWUoCiAgICAgICAgICAgIGxvZ19kZi5zb3J0X3ZhbHVlcygiVGltZXN0YW1wIiwgYXNjZW5kaW5nPUZhbHNlKSwKICAgICAgICAgICAgdXNlX2NvbnRhaW5lcl93aWR0aD1UcnVlLAogICAgICAgICAgICBoaWRlX2luZGV4PVRydWUsCiAgICAgICAgKQogICAgICAgIHN0LmNhcHRpb24oZiJ7bGVuKGxvZ19kZil9IGVtYWlscyBzZW50IHRvdGFsIikK
+"""
+past_due_dashboard.py
+
+Streamlit dashboard for past due AR invoices.
+- Password-protected login
+- Fetches past due invoices from NetSuite
+- Shows table: Customer, Email, Invoice #, Amount Due, Due Date, Days Overdue
+- Click a row to open an editable email draft
+- Send triggers Gmail API (from john.kuok@perplexity.ai)
+- Logs every sent email to the email_log tab in Google Sheet
+- Shows full send history from email_log tab
+
+Run locally:
+    streamlit run past_due_dashboard.py
+
+Required env vars / st.secrets:
+    NETSUITE_ACCOUNT_ID, NETSUITE_CONSUMER_KEY, NETSUITE_CONSUMER_SECRET
+    NETSUITE_TOKEN_ID, NETSUITE_TOKEN_SECRET
+    GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET, GOOGLE_REFRESH_TOKEN
+    GOOGLE_SHEET_ID
+    GMAIL_SENDER       (optional, defaults to john.kuok@perplexity.ai)
+    DASHBOARD_PASSWORD (required — blocks access without password)
+"""
+
+import os
+from datetime import datetime, timezone
+
+import pandas as pd
+import streamlit as st
+from google.auth.transport.requests import Request
+from google.oauth2.credentials import Credentials
+from googleapiclient.discovery import build
+
+from netsuite_client import fetch_past_due_invoices, fetch_invoice_pdf
+from gmail_sender import send_email
+
+# ── Page config ──────────────────────────────────────────────────────────────────
+st.set_page_config(
+    page_title="Past Due AR Dashboard",
+    page_icon="💰",
+    layout="wide",
+)
+
+# ── Secrets helper ─────────────────────────────────────────────────────────────────
+def _secret(key: str, default: str = None) -> str:
+    """Read from st.secrets (Streamlit Cloud) or os.environ (GitHub Actions / local)."""
+    try:
+        if key in st.secrets:
+            return st.secrets[key]
+    except Exception:
+        pass
+    val = os.environ.get(key, default)
+    if val is None:
+        raise KeyError(key)
+    return val
+
+
+# ── Password gate ──────────────────────────────────────────────────────────────────
+def _check_password():
+    correct = _secret("DASHBOARD_PASSWORD", "")
+    if not correct:
+        return  # No password configured — allow access
+    if st.session_state.get("authenticated"):
+        return
+    st.title("💰 Past Due AR Dashboard")
+    pwd = st.text_input("Password", type="password")
+    if st.button("Login"):
+        if pwd == correct:
+            st.session_state["authenticated"] = True
+            st.rerun()
+        else:
+            st.error("Incorrect password.")
+    st.stop()
+
+_check_password()
+
+# ── Constants ────────────────────────────────────────────────────────────────────
+TOKEN_URI = "https://oauth2.googleapis.com/token"
+SCOPES    = [
+    "https://www.googleapis.com/auth/gmail.send",
+    "https://www.googleapis.com/auth/drive",
+    "https://www.googleapis.com/auth/spreadsheets",
+]
+LOG_TAB  = "email_log"
+SHEET_ID = _secret("GOOGLE_SHEET_ID", "1PDLXi7ZQxvDSeUbdf7_5ft1Npq7oIBad9PgTl0R2CpM")
+SENDER   = _secret("GMAIL_SENDER", "john.kuok@perplexity.ai")
+
+# ── Google Sheets helpers ────────────────────────────────────────────────────────
+
+@st.cache_resource(show_spinner=False)
+def _sheets_service():
+    creds = Credentials(
+        token=None,
+        refresh_token=_secret("GOOGLE_REFRESH_TOKEN"),
+        token_uri=TOKEN_URI,
+        client_id=_secret("GOOGLE_CLIENT_ID"),
+        client_secret=_secret("GOOGLE_CLIENT_SECRET"),
+        scopes=SCOPES,
+    )
+    creds.refresh(Request())
+    return build("sheets", "v4", credentials=creds)
+
+
+def _ensure_log_tab():
+    sheets = _sheets_service()
+    meta = sheets.spreadsheets().get(spreadsheetId=SHEET_ID).execute()
+    existing = [s["properties"]["title"] for s in meta["sheets"]]
+    if LOG_TAB not in existing:
+        sheets.spreadsheets().batchUpdate(
+            spreadsheetId=SHEET_ID,
+            body={"requests": [{"addSheet": {"properties": {"title": LOG_TAB}}}]}
+        ).execute()
+        sheets.spreadsheets().values().update(
+            spreadsheetId=SHEET_ID,
+            range=f"{LOG_TAB}!A1",
+            valueInputOption="RAW",
+            body={"values": [["Timestamp", "Sent By", "Invoice #", "Customer", "To Email", "Subject", "Body"]]}
+        ).execute()
+
+
+def _log_email(invoice_id: str, customer: str, to_email: str, subject: str, body: str):
+    sheets = _sheets_service()
+    ts = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S UTC")
+    sheets.spreadsheets().values().append(
+        spreadsheetId=SHEET_ID,
+        range=f"{LOG_TAB}!A1",
+        valueInputOption="RAW",
+        insertDataOption="INSERT_ROWS",
+        body={"values": [[ts, SENDER, invoice_id, customer, to_email, subject, body]]}
+    ).execute()
+
+
+def _load_email_log() -> pd.DataFrame:
+    sheets = _sheets_service()
+    try:
+        result = sheets.spreadsheets().values().get(
+            spreadsheetId=SHEET_ID,
+            range=f"{LOG_TAB}!A:G"
+        ).execute()
+        rows = result.get("values", [])
+        if len(rows) <= 1:
+            return pd.DataFrame(columns=["Timestamp", "Sent By", "Invoice #", "Customer", "To Email", "Subject", "Body"])
+        return pd.DataFrame(rows[1:], columns=rows[0])
+    except Exception:
+        return pd.DataFrame(columns=["Timestamp", "Sent By", "Invoice #", "Customer", "To Email", "Subject", "Body"])
+
+
+# ── NetSuite data ──────────────────────────────────────────────────────────────────
+
+@st.cache_data(ttl=300, show_spinner="Fetching past due invoices from NetSuite...")
+def load_invoices():
+    return fetch_past_due_invoices()
+
+
+# ── Email draft helper ───────────────────────────────────────────────────────────────
+
+def default_subject(inv: dict) -> str:
+    return f"Past Due Invoice {inv['tranid']} \u2013 {inv['entity_name']}"
+
+
+def default_body(inv: dict) -> str:
+    amount = f"${inv['amount_due']:,.2f} {inv['currency']}"
+    return f"""Hi,
+
+I hope this message finds you well. I'm reaching out regarding invoice {inv['tranid']} for {amount}, which was due on {inv['due_date']} ({inv['days_overdue']} days ago).
+
+Could you please let us know the status of this payment? If you have already sent it, please disregard this message.
+
+If you have any questions or need a copy of the invoice, please don't hesitate to reach out.
+
+Best regards,
+Perplexity AI \u2014 Accounts Receivable
+{SENDER}"""
+
+
+# ── UI ───────────────────────────────────────────────────────────────────────────
+
+st.title("💰 Past Due AR Dashboard")
+st.caption(f"Data refreshes every 5 minutes  \u00b7  Sending from **{SENDER}**")
+
+_ensure_log_tab()
+
+tab_invoices, tab_log = st.tabs(["\U0001f4cb Past Due Invoices", "\U0001f4e8 Email Log"])
+
+with tab_invoices:
+    with st.spinner("Loading invoices..."):
+        invoices = load_invoices()
+
+    if not invoices:
+        st.success("No past due invoices found.")
+        st.stop()
+
+    df = pd.DataFrame(invoices)
+
+    col1, col2, col3 = st.columns(3)
+    col1.metric("Past Due Invoices", len(df))
+    col2.metric("Total Amount Due", f"${df['amount_due'].sum():,.2f}")
+    col3.metric("Avg Days Overdue", f"{df['days_overdue'].mean():.0f} days")
+
+    st.divider()
+
+    def highlight_overdue(val):
+        if isinstance(val, (int, float)):
+            if val > 90:
+                return "background-color: #ffd6d6"
+            elif val > 30:
+                return "background-color: #fff3cd"
+        return ""
+
+    display_df = df[[
+        "tranid", "entity_name", "billing_email",
+        "amount_due", "due_date", "days_overdue"
+    ]].rename(columns={
+        "tranid":        "Invoice #",
+        "entity_name":   "Customer",
+        "billing_email": "Billing Email",
+        "amount_due":    "Amount Due",
+        "due_date":      "Due Date",
+        "days_overdue":  "Days Overdue",
+    })
+
+    styled = display_df.style.applymap(highlight_overdue, subset=["Days Overdue"]) \
+        .format({"Amount Due": "${:,.2f}"})
+
+    st.dataframe(styled, use_container_width=True, hide_index=True)
+
+    st.divider()
+    st.subheader("\u2709\ufe0f Send Follow-Up Email")
+
+    invoice_options = {
+        f"{inv['tranid']} \u2014 {inv['entity_name']} (${inv['amount_due']:,.2f}, {inv['days_overdue']}d overdue)": inv
+        for inv in invoices
+    }
+    selected_label = st.selectbox("Select invoice", list(invoice_options.keys()))
+    selected_inv = invoice_options[selected_label]
+
+    to_email = st.text_input("To", value=selected_inv.get("billing_email", ""))
+    subject  = st.text_input("Subject", value=default_subject(selected_inv))
+    body     = st.text_area("Message", value=default_body(selected_inv), height=300)
+
+    col_send, col_ns = st.columns([1, 4])
+
+    with col_send:
+        send_clicked = st.button("Send Email", type="primary", use_container_width=True)
+
+    with col_ns:
+        st.link_button(
+            "Open in NetSuite \u2197",
+            selected_inv["netsuite_url"],
+            use_container_width=False
+        )
+
+    # PDF preview / download
+    with st.expander("\U0001f4ce Attach Invoice PDF", expanded=True):
+        attach_pdf = st.checkbox("Attach PDF to email", value=True)
+        if st.button("Preview / Download PDF"):
+            with st.spinner("Fetching PDF from NetSuite..."):
+                try:
+                    pdf_data = fetch_invoice_pdf(selected_inv["id"])
+                    st.download_button(
+                        label="\u2b07\ufe0f Download PDF",
+                        data=pdf_data,
+                        file_name=f"{selected_inv['tranid']}.pdf",
+                        mime="application/pdf",
+                    )
+                except Exception as e:
+                    st.error(f"Could not fetch PDF: {e}")
+
+    if send_clicked:
+        if not to_email:
+            st.error("No billing email on file for this customer. Please enter one manually.")
+        else:
+            with st.spinner("Sending..."):
+                try:
+                    pdf_bytes = None
+                    pdf_filename = None
+                    if attach_pdf:
+                        try:
+                            pdf_bytes = fetch_invoice_pdf(selected_inv["id"])
+                            pdf_filename = f"{selected_inv['tranid']}.pdf"
+                        except Exception as e:
+                            st.warning(f"Could not fetch PDF, sending without attachment: {e}")
+                    send_email(
+                        to=to_email, subject=subject, body=body, sender=SENDER,
+                        pdf_bytes=pdf_bytes, pdf_filename=pdf_filename,
+                    )
+                    _log_email(
+                        invoice_id=selected_inv["tranid"],
+                        customer=selected_inv["entity_name"],
+                        to_email=to_email,
+                        subject=subject,
+                        body=body,
+                    )
+                    st.success(f"Email sent to **{to_email}**{' with PDF attached' if pdf_bytes else ''} and logged.")
+                    st.cache_data.clear()
+                except Exception as e:
+                    st.error(f"Failed to send: {e}")
+
+with tab_log:
+    st.subheader("\U0001f4e8 Email Send History")
+    with st.spinner("Loading log..."):
+        log_df = _load_email_log()
+
+    if log_df.empty:
+        st.info("No emails sent yet.")
+    else:
+        st.dataframe(
+            log_df.sort_values("Timestamp", ascending=False),
+            use_container_width=True,
+            hide_index=True,
+        )
+        st.caption(f"{len(log_df)} emails sent total")
