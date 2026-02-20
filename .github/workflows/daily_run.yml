@@ -22,7 +22,9 @@ jobs:
           python-version: "3.11"
 
       - name: Install dependencies
-        run: pip install -r requirements.txt
+        run: |
+          pip install --no-cache-dir -r requirements.txt
+          pip list | grep -i google
 
       - name: Verify critical imports
         run: python -c "from googleapiclient.discovery import build; import paramiko; import pandas; print('All imports OK')"
