@@ -54,7 +54,6 @@ def _secret(key: str, default: str = None) -> str:
         raise KeyError(key)
     return val
 
-
 # ── Password gate ──────────────────────────────────────────────────────────────────
 def _check_password():
     correct = _secret("DASHBOARD_PASSWORD", "")
@@ -100,7 +99,6 @@ def _sheets_service():
     creds.refresh(Request())
     return build("sheets", "v4", credentials=creds)
 
-
 def _ensure_log_tab():
     sheets = _sheets_service()
     meta = sheets.spreadsheets().get(spreadsheetId=SHEET_ID).execute()
@@ -117,7 +115,6 @@ def _ensure_log_tab():
             body={"values": [["Timestamp", "Sent By", "Invoice #", "Customer", "To Email", "Subject", "Body"]]}
         ).execute()
 
-
 def _log_email(invoice_id: str, customer: str, to_email: str, subject: str, body: str):
     sheets = _sheets_service()
     ts = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S UTC")
@@ -128,7 +125,6 @@ def _log_email(invoice_id: str, customer: str, to_email: str, subject: str, body
         insertDataOption="INSERT_ROWS",
         body={"values": [[ts, SENDER, invoice_id, customer, to_email, subject, body]]}
     ).execute()
-
 
 def _load_email_log() -> pd.DataFrame:
     sheets = _sheets_service()
@@ -144,19 +140,16 @@ def _load_email_log() -> pd.DataFrame:
     except Exception:
         return pd.DataFrame(columns=["Timestamp", "Sent By", "Invoice #", "Customer", "To Email", "Subject", "Body"])
 
-
 # ── NetSuite data ──────────────────────────────────────────────────────────────────
 
 @st.cache_data(ttl=300, show_spinner="Fetching past due invoices from NetSuite...")
 def load_invoices():
     return fetch_past_due_invoices()
 
-
 # ── Email draft helper ───────────────────────────────────────────────────────────────
 
 def default_subject(inv: dict) -> str:
-    return f"Past Due Invoice {inv['tranid']} \u2013 {inv['entity_name']}"
-
+    return f"Past Due Invoice {inv['tranid']} – {inv['entity_name']}"
 
 def default_body(inv: dict) -> str:
     amount = f"${inv['amount_due']:,.2f} {inv['currency']}"
@@ -169,18 +162,17 @@ Could you please let us know the status of this payment? If you have already sen
 If you have any questions or need a copy of the invoice, please don't hesitate to reach out.
 
 Best regards,
-Perplexity AI \u2014 Accounts Receivable
+Perplexity AI — Accounts Receivable
 {SENDER}"""
-
 
 # ── UI ───────────────────────────────────────────────────────────────────────────
 
 st.title("💰 Past Due AR Dashboard")
-st.caption(f"Data refreshes every 5 minutes  \u00b7  Sending from **{SENDER}**")
+st.caption(f"Data refreshes every 5 minutes  ·  Sending from **{SENDER}**")
 
 _ensure_log_tab()
 
-tab_invoices, tab_log = st.tabs(["\U0001f4cb Past Due Invoices", "\U0001f4e8 Email Log"])
+tab_invoices, tab_log = st.tabs(["📋 Past Due Invoices", "📨 Email Log"])
 
 with tab_invoices:
     with st.spinner("Loading invoices..."):
@@ -219,16 +211,16 @@ with tab_invoices:
         "days_overdue":  "Days Overdue",
     })
 
-    styled = display_df.style.applymap(highlight_overdue, subset=["Days Overdue"]) \
+    styled = display_df.style.map(highlight_overdue, subset=["Days Overdue"]) \
         .format({"Amount Due": "${:,.2f}"})
 
-    st.dataframe(styled, use_container_width=True, hide_index=True)
+    st.dataframe(styled, width="stretch", hide_index=True)
 
     st.divider()
-    st.subheader("\u2709\ufe0f Send Follow-Up Email")
+    st.subheader("✉️ Send Follow-Up Email")
 
     invoice_options = {
-        f"{inv['tranid']} \u2014 {inv['entity_name']} (${inv['amount_due']:,.2f}, {inv['days_overdue']}d overdue)": inv
+        f"{inv['tranid']} — {inv['entity_name']} (${inv['amount_due']:,.2f}, {inv['days_overdue']}d overdue)": inv
         for inv in invoices
     }
     selected_label = st.selectbox("Select invoice", list(invoice_options.keys()))
@@ -245,20 +237,20 @@ with tab_invoices:
 
     with col_ns:
         st.link_button(
-            "Open in NetSuite \u2197",
+            "Open in NetSuite ↗",
             selected_inv["netsuite_url"],
             use_container_width=False
         )
 
     # PDF preview / download
-    with st.expander("\U0001f4ce Attach Invoice PDF", expanded=True):
+    with st.expander("📎 Attach Invoice PDF", expanded=True):
         attach_pdf = st.checkbox("Attach PDF to email", value=True)
         if st.button("Preview / Download PDF"):
             with st.spinner("Fetching PDF from NetSuite..."):
                 try:
                     pdf_data = fetch_invoice_pdf(selected_inv["id"])
                     st.download_button(
-                        label="\u2b07\ufe0f Download PDF",
+                        label="⬇️ Download PDF",
                         data=pdf_data,
                         file_name=f"{selected_inv['tranid']}.pdf",
                         mime="application/pdf",
@@ -297,7 +289,7 @@ with tab_invoices:
                     st.error(f"Failed to send: {e}")
 
 with tab_log:
-    st.subheader("\U0001f4e8 Email Send History")
+    st.subheader("📨 Email Send History")
     with st.spinner("Loading log..."):
         log_df = _load_email_log()
 
@@ -306,7 +298,7 @@ with tab_log:
     else:
         st.dataframe(
             log_df.sort_values("Timestamp", ascending=False),
-            use_container_width=True,
+            width="stretch",
             hide_index=True,
         )
         st.caption(f"{len(log_df)} emails sent total")
