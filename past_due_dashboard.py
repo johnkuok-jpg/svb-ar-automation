@@ -80,16 +80,16 @@ SCOPES      = [
     "https://www.googleapis.com/auth/drive",
     "https://www.googleapis.com/auth/spreadsheets",
 ]
-LOG_TAB  = "email_log"
-SHEET_ID = _secret("GOOGLE_SHEET_ID", "1PDLXi7ZQxvDSeUbdf7_5ft1Npq7oIBad9PgTl0R2CpM")
-SENDER   = _secret("GMAIL_SENDER", "john.kuok@perplexity.ai")
+LOG_TAB     = "email_log"
+SHEET_ID    = _secret("GOOGLE_SHEET_ID", "1PDLXi7ZQxvDSeUbdf7_5ft1Npq7oIBad9PgTl0R2CpM")
+SENDER      = _secret("GMAIL_SENDER", "john.kuok@perplexity.ai")
+AR_CC       = "ar@perplexity.ai"
 SHEETS_BASE = "https://sheets.googleapis.com/v4/spreadsheets"
 
 # ── Google credentials (requests-based, no httplib2) ─────────────────────────
 
 @st.cache_resource(show_spinner=False)
 def _get_creds() -> Credentials:
-    """Return a valid, refreshed Google OAuth2 Credentials object."""
     creds = Credentials(
         token=None,
         refresh_token=_secret("GOOGLE_REFRESH_TOKEN"),
@@ -102,26 +102,22 @@ def _get_creds() -> Credentials:
     return creds
 
 def _auth_headers() -> dict:
-    """Return Authorization headers with a fresh access token."""
     creds = _get_creds()
     if not creds.valid:
         creds.refresh(Request())
     return {"Authorization": f"Bearer {creds.token}", "Content-Type": "application/json"}
 
 def _sheets_get(path: str, params: dict = None):
-    """GET request to Sheets REST API."""
     r = _requests.get(f"{SHEETS_BASE}{path}", headers=_auth_headers(), params=params)
     r.raise_for_status()
     return r.json()
 
 def _sheets_post(path: str, json: dict):
-    """POST request to Sheets REST API."""
     r = _requests.post(f"{SHEETS_BASE}{path}", headers=_auth_headers(), json=json)
     r.raise_for_status()
     return r.json()
 
 def _sheets_put(path: str, params: dict, json: dict):
-    """PUT request to Sheets REST API."""
     r = _requests.put(f"{SHEETS_BASE}{path}", headers=_auth_headers(), params=params, json=json)
     r.raise_for_status()
     return r.json()
@@ -138,23 +134,23 @@ def _ensure_log_tab():
         _sheets_put(
             f"/{SHEET_ID}/values/{LOG_TAB}!A1",
             params={"valueInputOption": "RAW"},
-            json={"values": [["Timestamp", "Sent By", "Invoice #", "Customer", "To Email", "Subject", "Body"]]},
+            json={"values": [["Timestamp", "Sent By", "Invoice #", "Customer", "To Email", "CC", "Subject", "Body"]]},
         )
 
-def _log_email(invoice_id: str, customer: str, to_email: str, subject: str, body: str):
+def _log_email(invoice_id: str, customer: str, to_email: str, cc_email: str, subject: str, body: str):
     ts = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S UTC")
     r = _requests.post(
         f"{SHEETS_BASE}/{SHEET_ID}/values/{LOG_TAB}!A1:append",
         headers=_auth_headers(),
         params={"valueInputOption": "RAW", "insertDataOption": "INSERT_ROWS"},
-        json={"values": [[ts, SENDER, invoice_id, customer, to_email, subject, body]]},
+        json={"values": [[ts, SENDER, invoice_id, customer, to_email, cc_email, subject, body]]},
     )
     r.raise_for_status()
 
 def _load_email_log() -> pd.DataFrame:
-    empty = pd.DataFrame(columns=["Timestamp", "Sent By", "Invoice #", "Customer", "To Email", "Subject", "Body"])
+    empty = pd.DataFrame(columns=["Timestamp", "Sent By", "Invoice #", "Customer", "To Email", "CC", "Subject", "Body"])
     try:
-        data = _sheets_get(f"/{SHEET_ID}/values/{LOG_TAB}!A:G")
+        data = _sheets_get(f"/{SHEET_ID}/values/{LOG_TAB}!A:H")
         rows = data.get("values", [])
         if len(rows) <= 1:
             return empty
@@ -249,6 +245,7 @@ with tab_invoices:
     selected_inv = invoice_options[selected_label]
 
     to_email = st.text_input("To", value=selected_inv.get("billing_email", ""))
+    cc_email = st.text_input("CC", value=AR_CC)
     subject  = st.text_input("Subject", value=default_subject(selected_inv))
     body     = st.text_area("Message", value=default_body(selected_inv), height=300)
 
@@ -295,17 +292,18 @@ with tab_invoices:
                         except Exception as e:
                             st.warning(f"Could not fetch PDF, sending without attachment: {e}")
                     send_email(
-                        to=to_email, subject=subject, body=body, sender=SENDER,
+                        to=to_email, cc=cc_email, subject=subject, body=body, sender=SENDER,
                         pdf_bytes=pdf_bytes, pdf_filename=pdf_filename,
                     )
                     _log_email(
                         invoice_id=selected_inv["tranid"],
                         customer=selected_inv["entity_name"],
                         to_email=to_email,
+                        cc_email=cc_email,
                         subject=subject,
                         body=body,
                     )
-                    st.success(f"Email sent to **{to_email}**{' with PDF attached' if pdf_bytes else ''} and logged.")
+                    st.success(f"Email sent to **{to_email}**{', CC: ' + cc_email if cc_email else ''}{' with PDF attached' if pdf_bytes else ''} and logged.")
                     st.cache_data.clear()
                 except Exception as e:
                     st.error(f"Failed to send: {e}")

@@ -23,7 +23,6 @@ from googleapiclient.discovery import build
 
 TOKEN_URI = "https://oauth2.googleapis.com/token"
 
-
 def _secret(key: str, default: str = None) -> str:
     """Read from st.secrets (Streamlit Cloud) or os.environ (GitHub Actions / local)."""
     try:
@@ -37,13 +36,11 @@ def _secret(key: str, default: str = None) -> str:
         raise KeyError(key)
     return val
 
-
 SCOPES = [
     "https://www.googleapis.com/auth/gmail.send",
     "https://www.googleapis.com/auth/drive",
     "https://www.googleapis.com/auth/spreadsheets",
 ]
-
 
 def _get_gmail_service():
     creds = Credentials(
@@ -57,14 +54,15 @@ def _get_gmail_service():
     creds.refresh(Request())
     return build("gmail", "v1", credentials=creds)
 
-
 def send_email(to: str, subject: str, body: str, sender: str = None,
+               cc: str = None,
                pdf_bytes: bytes = None, pdf_filename: str = None) -> dict:
     """
-    Send a plain-text email via Gmail API, with optional PDF attachment.
+    Send a plain-text email via Gmail API, with optional CC and PDF attachment.
 
     Args:
-        to:           Recipient email address
+        to:           Recipient email address(es), comma-separated
+        cc:           CC email address(es), comma-separated (optional)
         subject:      Email subject line
         body:         Plain text email body
         sender:       From address (defaults to GMAIL_SENDER secret)
@@ -79,6 +77,8 @@ def send_email(to: str, subject: str, body: str, sender: str = None,
     msg = MIMEMultipart("mixed")
     msg["To"] = to
     msg["From"] = from_addr
+    if cc:
+        msg["Cc"] = cc
     msg["Subject"] = subject
     msg.attach(MIMEText(body, "plain"))
 
