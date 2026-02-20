@@ -1,1 +1,270 @@
-IiIiCm5ldHN1aXRlX2NsaWVudC5weQoKUXVlcmllcyBOZXRTdWl0ZSBmb3Igb3BlbiBhbmQgcGFzdCBkdWUgQVIgaW52b2ljZXMgdmlhIFN1aXRlUUwgUkVTVCBBUEkuClVzZXMgVG9rZW4tQmFzZWQgQXV0aGVudGljYXRpb24gKFRCQSkgd2l0aCBITUFDLVNIQTI1NiBPQXV0aCAxLjBhIHNpZ25pbmcuCgpmZXRjaF9vcGVuX2ludm9pY2VzKCkgICAg4oaSIGFsbCBpbnZvaWNlcyB3aXRoIGZvcmVpZ25hbW91bnR1bnBhaWQgPiAwCmZldGNoX3Bhc3RfZHVlX2ludm9pY2VzKCkg4oaSIGludm9pY2VzIHdoZXJlIGR1ZWRhdGUgPCB0b2RheSwgd2l0aCBiaWxsaW5nIGVtYWlsCiIiIgoKaW1wb3J0IGhhc2hsaWIKaW1wb3J0IGhtYWMKaW1wb3J0IG9zCmltcG9ydCB0aW1lCmltcG9ydCByYW5kb20KaW1wb3J0IHN0cmluZwppbXBvcnQgdXJsbGliLnBhcnNlCmZyb20gYmFzZTY0IGltcG9ydCBiNjRlbmNvZGUKCmltcG9ydCByZXF1ZXN0cwoKCmRlZiBfc2VjcmV0KGtleTogc3RyLCBkZWZhdWx0OiBzdHIgPSBOb25lKSAtPiBzdHI6CiAgICAiIiJSZWFkIGZyb20gc3Quc2VjcmV0cyAoU3RyZWFtbGl0IENsb3VkKSBvciBvcy5lbnZpcm9uIChHaXRIdWIgQWN0aW9ucyAvIGxvY2FsKS4iIiIKICAgIHRyeToKICAgICAgICBpbXBvcnQgc3RyZWFtbGl0IGFzIHN0CiAgICAgICAgaWYga2V5IGluIHN0LnNlY3JldHM6CiAgICAgICAgICAgIHJldHVybiBzdC5zZWNyZXRzW2tleV0KICAgIGV4Y2VwdCBFeGNlcHRpb246CiAgICAgICAgcGFzcwogICAgdmFsID0gb3MuZW52aXJvbi5nZXQoa2V5LCBkZWZhdWx0KQogICAgaWYgdmFsIGlzIE5vbmU6CiAgICAgICAgcmFpc2UgS2V5RXJyb3Ioa2V5KQogICAgcmV0dXJuIHZhbAoKCkFDQ09VTlRfSUQgICAgICA9IF9zZWNyZXQoIk5FVFNVSVRFX0FDQ09VTlRfSUQiLCAiOTA2MDYzOCIpCkNPTlNVTUVSX0tFWSAgICA9IF9zZWNyZXQoIk5FVFNVSVRFX0NPTlNVTUVSX0tFWSIpCkNPTlNVTUVSX1NFQ1JFVCA9IF9zZWNyZXQoIk5FVFNVSVRFX0NPTlNVTUVSX1NFQ1JFVCIpClRPS0VOX0lEICAgICAgICA9IF9zZWNyZXQoIk5FVFNVSVRFX1RPS0VOX0lEIikKVE9LRU5fU0VDUkVUICAgID0gX3NlY3JldCgiTkVUU1VJVEVfVE9LRU5fU0VDUkVUIikKCiMgTmV0U3VpdGUgUkVTVCBlbmRwb2ludHMKQkFTRV9VUkwgPSBmImh0dHBzOi8ve0FDQ09VTlRfSUR9LnN1aXRldGFsay5hcGkubmV0c3VpdGUuY29tL3NlcnZpY2VzL3Jlc3QvcXVlcnkvdjEvc3VpdGVxbCIKUERGX1JFU1RMRVRfVVJMID0gZiJodHRwczovL3tBQ0NPVU5UX0lEfS5yZXN0bGV0cy5hcGkubmV0c3VpdGUuY29tL2FwcC9zaXRlL2hvc3RpbmcvcmVzdGxldC5ubD9zY3JpcHQ9MTczNyZkZXBsb3k9MSIKSU5WT0lDRV9VUkxfVEVNUExBVEUgPSAoCiAgICBmImh0dHBzOi8ve0FDQ09VTlRfSUR9LmFwcC5uZXRzdWl0ZS5jb20vYXBwL2FjY291bnRpbmcvdHJhbnNhY3Rpb25zL2N1c3RpbnZjLm5sP2lkPXt7aWR9fSZ3aGVuY2U9IgopCgoKZGVmIF9ub25jZShsZW5ndGg6IGludCA9IDExKSAtPiBzdHI6CiAgICByZXR1cm4gIiIuam9pbihyYW5kb20uY2hvaWNlcyhzdHJpbmcuYXNjaWlfbGV0dGVycyArIHN0cmluZy5kaWdpdHMsIGs9bGVuZ3RoKSkKCgpkZWYgX29hdXRoX2hlYWRlcihtZXRob2Q6IHN0ciwgdXJsOiBzdHIpIC0+IHN0cjoKICAgICIiIkJ1aWxkIE9BdXRoIDEuMGEgQXV0aG9yaXphdGlvbiBoZWFkZXIgd2l0aCBITUFDLVNIQTI1Ni4iIiIKICAgIHRzID0gc3RyKGludCh0aW1lLnRpbWUoKSkpCiAgICBub25jZSA9IF9ub25jZSgpCgogICAgb2F1dGhfcGFyYW1zID0gewogICAgICAgICJvYXV0aF9jb25zdW1lcl9rZXkiOiAgICAgQ09OU1VNRVJfS0VZLAogICAgICAgICJvYXV0aF9ub25jZSI6ICAgICAgICAgICAgbm9uY2UsCiAgICAgICAgIm9hdXRoX3NpZ25hdHVyZV9tZXRob2QiOiAiSE1BQy1TSEEyNTYiLAogICAgICAgICJvYXV0aF90aW1lc3RhbXAiOiAgICAgICAgdHMsCiAgICAgICAgIm9hdXRoX3Rva2VuIjogICAgICAgICAgICBUT0tFTl9JRCwKICAgICAgICAib2F1dGhfdmVyc2lvbiI6ICAgICAgICAgICIxLjAiLAogICAgfQoKICAgICMgU2lnbmF0dXJlIGJhc2Ugc3RyaW5nIOKAlCBNVVNUIHVzZSBiYXNlIFVSTCBvbmx5IChubyBxdWVyeSBzdHJpbmcpCiAgICBwYXJzZWQgPSB1cmxsaWIucGFyc2UudXJscGFyc2UodXJsKQogICAgYmFzZV91cmwgPSB1cmxsaWIucGFyc2UudXJsdW5wYXJzZShwYXJzZWQuX3JlcGxhY2UocXVlcnk9IiIsIGZyYWdtZW50PSIiKSkKCiAgICAjIEluY2x1ZGUgYW55IFVSTCBxdWVyeSBwYXJhbXMgaW4gdGhlIHNpZ25hdHVyZSBwYXJhbXMKICAgIGFsbF9zaWdfcGFyYW1zID0gZGljdChvYXV0aF9wYXJhbXMpCiAgICBpZiBwYXJzZWQucXVlcnk6CiAgICAgICAgZm9yIGssIHYgaW4gdXJsbGliLnBhcnNlLnBhcnNlX3FzbChwYXJzZWQucXVlcnkpOgogICAgICAgICAgICBhbGxfc2lnX3BhcmFtc1trXSA9IHYKCiAgICBzb3J0ZWRfcGFyYW1zID0gIiYiLmpvaW4oCiAgICAgICAgZiJ7dXJsbGliLnBhcnNlLnF1b3RlKGssIHNhZmU9JycpfT17dXJsbGliLnBhcnNlLnF1b3RlKHYsIHNhZmU9JycpfSIKICAgICAgICBmb3IgaywgdiBpbiBzb3J0ZWQoYWxsX3NpZ19wYXJhbXMuaXRlbXMoKSkKICAgICkKICAgIGJhc2Vfc3RyaW5nID0gIiYiLmpvaW4oWwogICAgICAgIG1ldGhvZC51cHBlcigpLAogICAgICAgIHVybGxpYi5wYXJzZS5xdW90ZShiYXNlX3VybCwgc2FmZT0iIiksCiAgICAgICAgdXJsbGliLnBhcnNlLnF1b3RlKHNvcnRlZF9wYXJhbXMsIHNhZmU9IiIpLAogICAgXSkKCiAgICAjIFNpZ25pbmcga2V5CiAgICBzaWduaW5nX2tleSA9IGYie3VybGxpYi5wYXJzZS5xdW90ZShDT05TVU1FUl9TRUNSRVQsIHNhZmU9JycpfSZ7dXJsbGliLnBhcnNlLnF1b3RlKFRPS0VOX1NFQ1JFVCwgc2FmZT0nJyl9IgoKICAgICMgSE1BQy1TSEEyNTYKICAgIHNpZ25hdHVyZSA9IGI2NGVuY29kZSgKICAgICAgICBobWFjLm5ldyhzaWduaW5nX2tleS5lbmNvZGUoKSwgYmFzZV9zdHJpbmcuZW5jb2RlKCksIGhhc2hsaWIuc2hhMjU2KS5kaWdlc3QoKQogICAgKS5kZWNvZGUoKQoKICAgIG9hdXRoX3BhcmFtc1sib2F1dGhfc2lnbmF0dXJlIl0gPSBzaWduYXR1cmUKICAgIG9hdXRoX3BhcmFtc1sicmVhbG0iXSA9IEFDQ09VTlRfSUQudXBwZXIoKS5yZXBsYWNlKCItIiwgIl8iKQoKICAgIGhlYWRlcl9wYXJ0cyA9ICIsICIuam9pbigKICAgICAgICBmJ3trfT0ie3VybGxpYi5wYXJzZS5xdW90ZSh2LCBzYWZlPSIiKX0iJwogICAgICAgIGZvciBrLCB2IGluIHNvcnRlZChvYXV0aF9wYXJhbXMuaXRlbXMoKSkKICAgICkKICAgIHJldHVybiBmIk9BdXRoIHtoZWFkZXJfcGFydHN9IgoKCmRlZiBmZXRjaF9vcGVuX2ludm9pY2VzKCkgLT4gbGlzdFtkaWN0XToKICAgICIiIgogICAgUmV0dXJuIGFsbCBvcGVuIEFSIGludm9pY2VzIGZyb20gTmV0U3VpdGUuCiAgICBGaWx0ZXJzOiB0eXBlID0gQ3VzdEludmMsIHN0YXR1cyA9IG9wZW4gKHJlbWFpbmluZ2Ftb3VudCA+IDApLgogICAgIiIiCiAgICBxdWVyeSA9ICIiIgogICAgICAgIFNFTEVDVAogICAgICAgICAgICB0LmlkLAogICAgICAgICAgICB0LnRyYW5pZCwKICAgICAgICAgICAgdC50cmFuZGF0ZSwKICAgICAgICAgICAgdC5kdWVkYXRlLAogICAgICAgICAgICB0LmZvcmVpZ250b3RhbCwKICAgICAgICAgICAgdC5mb3JlaWduYW1vdW50dW5wYWlkLAogICAgICAgICAgICB0LmN1cnJlbmN5LAogICAgICAgICAgICBlLmVudGl0eWlkLAogICAgICAgICAgICBlLmFsdG5hbWUKICAgICAgICBGUk9NIHRyYW5zYWN0aW9uIHQKICAgICAgICBMRUZUIEpPSU4gZW50aXR5IGUgT04gdC5lbnRpdHkgPSBlLmlkCiAgICAgICAgV0hFUkUgdC50eXBlID0gJ0N1c3RJbnZjJwogICAgICAgICAgQU5EIHQuZm9yZWlnbmFtb3VudHVucGFpZCA+IDAKICAgICAgICAgIEFORCB0LnZvaWRlZCA9ICdGJwogICAgICAgIE9SREVSIEJZIHQudHJhbmRhdGUgREVTQwogICAgIiIiCgogICAgdXJsID0gQkFTRV9VUkwKICAgIGhlYWRlcnMgPSB7CiAgICAgICAgIkF1dGhvcml6YXRpb24iOiBfb2F1dGhfaGVhZGVyKCJQT1NUIiwgdXJsKSwKICAgICAgICAiQ29udGVudC1UeXBlIjogICJhcHBsaWNhdGlvbi9qc29uIiwKICAgICAgICAiUHJlZmVyIjogICAgICAgICJ0cmFuc2llbnQiLAogICAgfQogICAgcGF5bG9hZCA9IHsicSI6IHF1ZXJ5fQoKICAgIGludm9pY2VzID0gW10KICAgIG9mZnNldCA9IDAKICAgIGxpbWl0ID0gMTAwMAoKICAgIHdoaWxlIFRydWU6CiAgICAgICAgcGFnaW5hdGVkX3VybCA9IGYie3VybH0/bGltaXQ9e2xpbWl0fSZvZmZzZXQ9e29mZnNldH0iCiAgICAgICAgaGVhZGVyc1siQXV0aG9yaXphdGlvbiJdID0gX29hdXRoX2hlYWRlcigiUE9TVCIsIHBhZ2luYXRlZF91cmwpCiAgICAgICAgcmVzcCA9IHJlcXVlc3RzLnBvc3QocGFnaW5hdGVkX3VybCwganNvbj1wYXlsb2FkLCBoZWFkZXJzPWhlYWRlcnMpCiAgICAgICAgcmVzcC5yYWlzZV9mb3Jfc3RhdHVzKCkKICAgICAgICBkYXRhID0gcmVzcC5qc29uKCkKCiAgICAgICAgaXRlbXMgPSBkYXRhLmdldCgiaXRlbXMiLCBbXSkKICAgICAgICBmb3Igcm93IGluIGl0ZW1zOgogICAgICAgICAgICBlbnRpdHlfbmFtZSA9IHJvdy5nZXQoImFsdG5hbWUiKSBvciByb3cuZ2V0KCJlbnRpdHlpZCIsICIiKQogICAgICAgICAgICBpbnZvaWNlcy5hcHBlbmQoewogICAgICAgICAgICAgICAgImlkIjogICAgICAgICAgICAgICBzdHIocm93LmdldCgiaWQiLCAiIikpLAogICAgICAgICAgICAgICAgInRyYW5pZCI6ICAgICAgICAgICByb3cuZ2V0KCJ0cmFuaWQiLCAiIiksCiAgICAgICAgICAgICAgICAiZW50aXR5X25hbWUiOiAgICAgIGVudGl0eV9uYW1lLAogICAgICAgICAgICAgICAgImFtb3VudF9yZW1haW5pbmciOiBmbG9hdChyb3cuZ2V0KCJmb3JlaWduYW1vdW50dW5wYWlkIiwgMCkpLAogICAgICAgICAgICAgICAgImN1cnJlbmN5IjogICAgICAgICByb3cuZ2V0KCJjdXJyZW5jeSIsICJVU0QiKSwKICAgICAgICAgICAgICAgICJ0cmFuZGF0ZSI6ICAgICAgICAgcm93LmdldCgidHJhbmRhdGUiLCAiIiksCiAgICAgICAgICAgICAgICAiZHVlX2RhdGUiOiAgICAgICAgIHJvdy5nZXQoImR1ZWRhdGUiLCAiIiksCiAgICAgICAgICAgICAgICAibmV0c3VpdGVfdXJsIjogICAgIElOVk9JQ0VfVVJMX1RFTVBMQVRFLmZvcm1hdChpZD1yb3cuZ2V0KCJpZCIsICIiKSksCiAgICAgICAgICAgIH0pCgogICAgICAgICMgUGFnaW5hdGlvbgogICAgICAgIGhhc19tb3JlID0gZGF0YS5nZXQoImhhc01vcmUiLCBGYWxzZSkKICAgICAgICBpZiBub3QgaGFzX21vcmU6CiAgICAgICAgICAgIGJyZWFrCiAgICAgICAgb2Zmc2V0ICs9IGxpbWl0CgogICAgcmV0dXJuIGludm9pY2VzCgoKZGVmIGZldGNoX3Bhc3RfZHVlX2ludm9pY2VzKCkgLT4gbGlzdFtkaWN0XToKICAgICIiIgogICAgUmV0dXJuIGFsbCBwYXN0IGR1ZSBBUiBpbnZvaWNlcyBmcm9tIE5ldFN1aXRlLgogICAgRmlsdGVyczogdHlwZSA9IEN1c3RJbnZjLCBkdWVkYXRlIDwgdG9kYXksIGZvcmVpZ25hbW91bnR1bnBhaWQgPiAwLgogICAgQWxzbyBmZXRjaGVzIGJpbGxpbmcgZW1haWwgZnJvbSB0aGUgY3VzdG9tZXIgcmVjb3JkLgogICAgIiIiCiAgICBxdWVyeSA9ICIiIgogICAgICAgIFNFTEVDVAogICAgICAgICAgICB0LmlkLAogICAgICAgICAgICB0LnRyYW5pZCwKICAgICAgICAgICAgdC50cmFuZGF0ZSwKICAgICAgICAgICAgdC5kdWVkYXRlLAogICAgICAgICAgICB0LmZvcmVpZ250b3RhbCwKICAgICAgICAgICAgdC5mb3JlaWduYW1vdW50dW5wYWlkLAogICAgICAgICAgICBjdXJyLnN5bWJvbCBBUyBjdXJyZW5jeSwKICAgICAgICAgICAgdC5lbWFpbCwKICAgICAgICAgICAgZS5lbnRpdHlpZCwKICAgICAgICAgICAgZS5hbHRuYW1lCiAgICAgICAgRlJPTSB0cmFuc2FjdGlvbiB0CiAgICAgICAgTEVGVCBKT0lOIGVudGl0eSBlIE9OIHQuZW50aXR5ID0gZS5pZAogICAgICAgIExFRlQgSk9JTiBjdXJyZW5jeSBjdXJyIE9OIHQuY3VycmVuY3kgPSBjdXJyLmlkCiAgICAgICAgV0hFUkUgdC50eXBlID0gJ0N1c3RJbnZjJwogICAgICAgICAgQU5EIHQuZm9yZWlnbmFtb3VudHVucGFpZCA+IDAKICAgICAgICAgIEFORCB0LnZvaWRlZCA9ICdGJwogICAgICAgICAgQU5EIHQuZHVlZGF0ZSA8IENVUlJFTlRfREFURQogICAgICAgIE9SREVSIEJZIHQuZHVlZGF0ZSBBU0MKICAgICIiIgoKICAgIGludm9pY2VzID0gW10KICAgIG9mZnNldCA9IDAKICAgIGxpbWl0ID0gMTAwMAoKICAgIHdoaWxlIFRydWU6CiAgICAgICAgcGFnaW5hdGVkX3VybCA9IGYie0JBU0VfVVJMfT9saW1pdD17bGltaXR9Jm9mZnNldD17b2Zmc2V0fSIKICAgICAgICBoZWFkZXJzID0gewogICAgICAgICAgICAiQXV0aG9yaXphdGlvbiI6IF9vYXV0aF9oZWFkZXIoIlBPU1QiLCBwYWdpbmF0ZWRfdXJsKSwKICAgICAgICAgICAgIkNvbnRlbnQtVHlwZSI6ICAiYXBwbGljYXRpb24vanNvbiIsCiAgICAgICAgICAgICJQcmVmZXIiOiAgICAgICAgInRyYW5zaWVudCIsCiAgICAgICAgfQogICAgICAgIHJlc3AgPSByZXF1ZXN0cy5wb3N0KHBhZ2luYXRlZF91cmwsIGpzb249eyJxIjogcXVlcnl9LCBoZWFkZXJzPWhlYWRlcnMpCiAgICAgICAgcmVzcC5yYWlzZV9mb3Jfc3RhdHVzKCkKICAgICAgICBkYXRhID0gcmVzcC5qc29uKCkKCiAgICAgICAgZnJvbSBkYXRldGltZSBpbXBvcnQgZGF0ZQogICAgICAgIHRvZGF5ID0gZGF0ZS50b2RheSgpCgogICAgICAgIGZvciByb3cgaW4gZGF0YS5nZXQoIml0ZW1zIiwgW10pOgogICAgICAgICAgICBlbnRpdHlfbmFtZSA9IHJvdy5nZXQoImFsdG5hbWUiKSBvciByb3cuZ2V0KCJlbnRpdHlpZCIsICIiKQoKICAgICAgICAgICAgIyBDYWxjdWxhdGUgZGF5cyBvdmVyZHVlCiAgICAgICAgICAgIGRheXNfb3ZlcmR1ZSA9IDAKICAgICAgICAgICAgZHVlX2RhdGVfc3RyID0gcm93LmdldCgiZHVlZGF0ZSIsICIiKQogICAgICAgICAgICBpZiBkdWVfZGF0ZV9zdHI6CiAgICAgICAgICAgICAgICB0cnk6CiAgICAgICAgICAgICAgICAgICAgZnJvbSBkYXRldGltZSBpbXBvcnQgZGF0ZXRpbWUKICAgICAgICAgICAgICAgICAgICBkdWVfZHQgPSBkYXRldGltZS5zdHJwdGltZShkdWVfZGF0ZV9zdHIsICIlbS8lZC8lWSIpLmRhdGUoKQogICAgICAgICAgICAgICAgICAgIGRheXNfb3ZlcmR1ZSA9ICh0b2RheSAtIGR1ZV9kdCkuZGF5cwogICAgICAgICAgICAgICAgZXhjZXB0IFZhbHVlRXJyb3I6CiAgICAgICAgICAgICAgICAgICAgcGFzcwoKICAgICAgICAgICAgaW52b2ljZXMuYXBwZW5kKHsKICAgICAgICAgICAgICAgICJpZCI6ICAgICAgICAgICAgICAgc3RyKHJvdy5nZXQoImlkIiwgIiIpKSwKICAgICAgICAgICAgICAgICJ0cmFuaWQiOiAgICAgICAgICAgcm93LmdldCgidHJhbmlkIiwgIiIpLAogICAgICAgICAgICAgICAgImVudGl0eV9uYW1lIjogICAgICBlbnRpdHlfbmFtZSwKICAgICAgICAgICAgICAgICJiaWxsaW5nX2VtYWlsIjogICAgcm93LmdldCgiZW1haWwiLCAiIiksCiAgICAgICAgICAgICAgICAiYW1vdW50X2R1ZSI6ICAgICAgIGZsb2F0KHJvdy5nZXQoImZvcmVpZ25hbW91bnR1bnBhaWQiLCAwKSksCiAgICAgICAgICAgICAgICAiaW52b2ljZV90b3RhbCI6ICAgIGZsb2F0KHJvdy5nZXQoImZvcmVpZ250b3RhbCIsIDApKSwKICAgICAgICAgICAgICAgICJjdXJyZW5jeSI6ICAgICAgICAgcm93LmdldCgiY3VycmVuY3kiLCAiVVNEIiksCiAgICAgICAgICAgICAgICAidHJhbmRhdGUiOiAgICAgICAgIHJvdy5nZXQoInRyYW5kYXRlIiwgIiIpLAogICAgICAgICAgICAgICAgImR1ZV9kYXRlIjogICAgICAgICBkdWVfZGF0ZV9zdHIsCiAgICAgICAgICAgICAgICAiZGF5c19vdmVyZHVlIjogICAgIGRheXNfb3ZlcmR1ZSwKICAgICAgICAgICAgICAgICJuZXRzdWl0ZV91cmwiOiAgICAgSU5WT0lDRV9VUkxfVEVNUExBVEUuZm9ybWF0KGlkPXJvdy5nZXQoImlkIiwgIiIpKSwKICAgICAgICAgICAgfSkKCiAgICAgICAgaWYgbm90IGRhdGEuZ2V0KCJoYXNNb3JlIiwgRmFsc2UpOgogICAgICAgICAgICBicmVhawogICAgICAgIG9mZnNldCArPSBsaW1pdAoKICAgIHJldHVybiBpbnZvaWNlcwoKCmRlZiBmZXRjaF9pbnZvaWNlX3BkZihpbnZvaWNlX2lkOiBzdHIpIC0+IGJ5dGVzOgogICAgIiIiCiAgICBGZXRjaCBhIFBERiBmb3IgdGhlIGdpdmVuIE5ldFN1aXRlIGludm9pY2UgaW50ZXJuYWwgSUQgdmlhIHRoZSBSRVNUbGV0LgogICAgUmV0dXJucyByYXcgUERGIGJ5dGVzLgogICAgIiIiCiAgICBpbXBvcnQgYmFzZTY0CiAgICB1cmwgPSBmIntQREZfUkVTVExFVF9VUkx9Jmludm9pY2VJZD17aW52b2ljZV9pZH0iCiAgICBoZWFkZXJzID0gewogICAgICAgICJBdXRob3JpemF0aW9uIjogX29hdXRoX2hlYWRlcigiR0VUIiwgdXJsKSwKICAgICAgICAiQ29udGVudC1UeXBlIjogICJhcHBsaWNhdGlvbi9qc29uIiwKICAgIH0KICAgIHJlc3AgPSByZXF1ZXN0cy5nZXQodXJsLCBoZWFkZXJzPWhlYWRlcnMpCiAgICByZXNwLnJhaXNlX2Zvcl9zdGF0dXMoKQogICAgZGF0YSA9IHJlc3AuanNvbigpCiAgICBpZiAiZXJyb3IiIGluIGRhdGE6CiAgICAgICAgcmFpc2UgUnVudGltZUVycm9yKGYiUkVTVGxldCBlcnJvcjoge2RhdGFbJ2Vycm9yJ119IikKICAgIHJldHVybiBiYXNlNjQuYjY0ZGVjb2RlKGRhdGFbImNvbnRlbnQiXSkK
+"""
+netsuite_client.py
+
+Queries NetSuite for open and past due AR invoices via SuiteQL REST API.
+Uses Token-Based Authentication (TBA) with HMAC-SHA256 OAuth 1.0a signing.
+
+fetch_open_invoices()    → all invoices with foreignamountunpaid > 0
+fetch_past_due_invoices() → invoices where duedate < today, with billing email
+"""
+
+import hashlib
+import hmac
+import os
+import time
+import random
+import string
+import urllib.parse
+from base64 import b64encode
+
+import requests
+
+
+def _secret(key: str, default: str = None) -> str:
+    """Read from st.secrets (Streamlit Cloud) or os.environ (GitHub Actions / local)."""
+    try:
+        import streamlit as st
+        if key in st.secrets:
+            return st.secrets[key]
+    except Exception:
+        pass
+    val = os.environ.get(key, default)
+    if val is None:
+        raise KeyError(key)
+    return val
+
+
+ACCOUNT_ID      = _secret("NETSUITE_ACCOUNT_ID", "9060638")
+CONSUMER_KEY    = _secret("NETSUITE_CONSUMER_KEY")
+CONSUMER_SECRET = _secret("NETSUITE_CONSUMER_SECRET")
+TOKEN_ID        = _secret("NETSUITE_TOKEN_ID")
+TOKEN_SECRET    = _secret("NETSUITE_TOKEN_SECRET")
+
+# NetSuite REST endpoints
+BASE_URL = f"https://{ACCOUNT_ID}.suitetalk.api.netsuite.com/services/rest/query/v1/suiteql"
+PDF_RESTLET_URL = f"https://{ACCOUNT_ID}.restlets.api.netsuite.com/app/site/hosting/restlet.nl?script=1737&deploy=1"
+INVOICE_URL_TEMPLATE = (
+    f"https://{ACCOUNT_ID}.app.netsuite.com/app/accounting/transactions/custinvc.nl?id={{id}}&whence="
+)
+
+
+def _nonce(length: int = 11) -> str:
+    return "".join(random.choices(string.ascii_letters + string.digits, k=length))
+
+
+def _oauth_header(method: str, url: str) -> str:
+    """Build OAuth 1.0a Authorization header with HMAC-SHA256."""
+    ts = str(int(time.time()))
+    nonce = _nonce()
+
+    oauth_params = {
+        "oauth_consumer_key":     CONSUMER_KEY,
+        "oauth_nonce":            nonce,
+        "oauth_signature_method": "HMAC-SHA256",
+        "oauth_timestamp":        ts,
+        "oauth_token":            TOKEN_ID,
+        "oauth_version":          "1.0",
+    }
+
+    # Signature base string — MUST use base URL only (no query string)
+    parsed = urllib.parse.urlparse(url)
+    base_url = urllib.parse.urlunparse(parsed._replace(query="", fragment=""))
+
+    # Include any URL query params in the signature params
+    all_sig_params = dict(oauth_params)
+    if parsed.query:
+        for k, v in urllib.parse.parse_qsl(parsed.query):
+            all_sig_params[k] = v
+
+    sorted_params = "&".join(
+        f"{urllib.parse.quote(k, safe='')}={urllib.parse.quote(v, safe='')}"
+        for k, v in sorted(all_sig_params.items())
+    )
+    base_string = "&".join([
+        method.upper(),
+        urllib.parse.quote(base_url, safe=""),
+        urllib.parse.quote(sorted_params, safe=""),
+    ])
+
+    # Signing key
+    signing_key = f"{urllib.parse.quote(CONSUMER_SECRET, safe='')}&{urllib.parse.quote(TOKEN_SECRET, safe='')}"
+
+    # HMAC-SHA256
+    signature = b64encode(
+        hmac.new(signing_key.encode(), base_string.encode(), hashlib.sha256).digest()
+    ).decode()
+
+    oauth_params["oauth_signature"] = signature
+    oauth_params["realm"] = ACCOUNT_ID.upper().replace("-", "_")
+
+    header_parts = ", ".join(
+        f'{k}="{urllib.parse.quote(v, safe="")}"'
+        for k, v in sorted(oauth_params.items())
+    )
+    return f"OAuth {header_parts}"
+
+
+def fetch_open_invoices() -> list[dict]:
+    """
+    Return all open AR invoices from NetSuite.
+    Filters: type = CustInvc, status = open (remainingamount > 0).
+    """
+    query = """
+        SELECT
+            t.id,
+            t.tranid,
+            t.trandate,
+            t.duedate,
+            t.foreigntotal,
+            t.foreignamountunpaid,
+            t.currency,
+            e.entityid,
+            e.altname
+        FROM transaction t
+        LEFT JOIN entity e ON t.entity = e.id
+        WHERE t.type = 'CustInvc'
+          AND t.foreignamountunpaid > 0
+          AND t.voided = 'F'
+        ORDER BY t.trandate DESC
+    """
+
+    url = BASE_URL
+    headers = {
+        "Authorization": _oauth_header("POST", url),
+        "Content-Type":  "application/json",
+        "Prefer":        "transient",
+    }
+    payload = {"q": query}
+
+    invoices = []
+    offset = 0
+    limit = 1000
+
+    while True:
+        paginated_url = f"{url}?limit={limit}&offset={offset}"
+        headers["Authorization"] = _oauth_header("POST", paginated_url)
+        resp = requests.post(paginated_url, json=payload, headers=headers)
+        resp.raise_for_status()
+        data = resp.json()
+
+        items = data.get("items", [])
+        for row in items:
+            entity_name = row.get("altname") or row.get("entityid", "")
+            invoices.append({
+                "id":               str(row.get("id", "")),
+                "tranid":           row.get("tranid", ""),
+                "entity_name":      entity_name,
+                "amount_remaining": float(row.get("foreignamountunpaid", 0)),
+                "currency":         row.get("currency", "USD"),
+                "trandate":         row.get("trandate", ""),
+                "due_date":         row.get("duedate", ""),
+                "netsuite_url":     INVOICE_URL_TEMPLATE.format(id=row.get("id", "")),
+            })
+
+        # Pagination
+        has_more = data.get("hasMore", False)
+        if not has_more:
+            break
+        offset += limit
+
+    return invoices
+
+
+def fetch_past_due_invoices() -> list[dict]:
+    """
+    Return all past due AR invoices from NetSuite.
+    Filters: type = CustInvc, duedate < today, foreignamountunpaid > 0.
+    Pulls billing email from the invoice itself (t.email).
+    """
+    query = """
+        SELECT
+            t.id,
+            t.tranid,
+            t.trandate,
+            t.duedate,
+            t.foreigntotal,
+            t.foreignamountunpaid,
+            curr.symbol AS currency,
+            t.email,
+            e.entityid,
+            e.altname
+        FROM transaction t
+        LEFT JOIN entity e ON t.entity = e.id
+        LEFT JOIN currency curr ON t.currency = curr.id
+        WHERE t.type = 'CustInvc'
+          AND t.foreignamountunpaid > 0
+          AND t.voided = 'F'
+          AND t.duedate < CURRENT_DATE
+        ORDER BY t.duedate ASC
+    """
+
+    invoices = []
+    offset = 0
+    limit = 1000
+
+    while True:
+        paginated_url = f"{BASE_URL}?limit={limit}&offset={offset}"
+        headers = {
+            "Authorization": _oauth_header("POST", paginated_url),
+            "Content-Type":  "application/json",
+            "Prefer":        "transient",
+        }
+        resp = requests.post(paginated_url, json={"q": query}, headers=headers)
+        resp.raise_for_status()
+        data = resp.json()
+
+        from datetime import date
+        today = date.today()
+
+        for row in data.get("items", []):
+            entity_name = row.get("altname") or row.get("entityid", "")
+
+            # Calculate days overdue
+            days_overdue = 0
+            due_date_str = row.get("duedate", "")
+            if due_date_str:
+                try:
+                    from datetime import datetime
+                    due_dt = datetime.strptime(due_date_str, "%m/%d/%Y").date()
+                    days_overdue = (today - due_dt).days
+                except ValueError:
+                    pass
+
+            invoices.append({
+                "id":               str(row.get("id", "")),
+                "tranid":           row.get("tranid", ""),
+                "entity_name":      entity_name,
+                "billing_email":    row.get("email", ""),
+                "amount_due":       float(row.get("foreignamountunpaid", 0)),
+                "invoice_total":    float(row.get("foreigntotal", 0)),
+                "currency":         row.get("currency", "USD"),
+                "trandate":         row.get("trandate", ""),
+                "due_date":         due_date_str,
+                "days_overdue":     days_overdue,
+                "netsuite_url":     INVOICE_URL_TEMPLATE.format(id=row.get("id", "")),
+            })
+
+        if not data.get("hasMore", False):
+            break
+        offset += limit
+
+    return invoices
+
+
+def fetch_invoice_pdf(invoice_id: str) -> bytes:
+    """
+    Fetch a PDF for the given NetSuite invoice internal ID via the RESTlet.
+    Returns raw PDF bytes.
+    """
+    import base64
+    url = f"{PDF_RESTLET_URL}&invoiceId={invoice_id}"
+    headers = {
+        "Authorization": _oauth_header("GET", url),
+        "Content-Type":  "application/json",
+    }
+    resp = requests.get(url, headers=headers)
+    resp.raise_for_status()
+    data = resp.json()
+    if "error" in data:
+        raise RuntimeError(f"RESTlet error: {data['error']}")
+    return base64.b64decode(data["content"])
