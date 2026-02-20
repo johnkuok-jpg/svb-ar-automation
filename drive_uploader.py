@@ -7,7 +7,7 @@ Auth flow:
     refresh token. Copy the printed refresh token into GitHub Secrets.
   - Pipeline: reads GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET, GOOGLE_REFRESH_TOKEN
     from env vars and exchanges them for a short-lived access token at runtime.
-    No browser, no interaction -- fully headless.
+    No browser, no interaction — fully headless.
 """
 
 import argparse
@@ -23,7 +23,11 @@ from googleapiclient.http import MediaFileUpload
 
 logger = logging.getLogger(__name__)
 
-SCOPES = ["https://www.googleapis.com/auth/drive.file"]
+SCOPES = [
+    "https://www.googleapis.com/auth/drive",
+    "https://www.googleapis.com/auth/spreadsheets",
+    "https://www.googleapis.com/auth/gmail.send",
+]
 
 
 # ---------------------------------------------------------------------------
@@ -126,7 +130,7 @@ def _run_auth_flow():
         python drive_uploader.py --auth
 
     You will be prompted to log in with your Google account in a browser.
-    The refresh token is printed to stdout -- copy it into GitHub Secrets
+    The refresh token is printed to stdout — copy it into GitHub Secrets
     as GOOGLE_REFRESH_TOKEN.
 
     Requires GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET to be set in your
