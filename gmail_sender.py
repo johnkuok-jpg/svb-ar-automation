@@ -14,6 +14,7 @@ Required env vars / st.secrets:
 """
 
 import base64
+import html as _html
 import os
 from email.mime.application import MIMEApplication
 from email.mime.multipart import MIMEMultipart
@@ -24,6 +25,7 @@ from google.oauth2.credentials import Credentials
 from googleapiclient.discovery import build
 
 TOKEN_URI = "https://oauth2.googleapis.com/token"
+SENDER_NAME = "Perplexity AR"
 
 def _secret(key: str, default: str = None) -> str:
     """Read from st.secrets (Streamlit Cloud) or os.environ (GitHub Actions / local)."""
@@ -59,17 +61,40 @@ def _get_gmail_service():
     creds.refresh(Request())
     return build("gmail", "v1", credentials=creds)
 
+
+def _plain_to_html(text: str) -> str:
+    """Convert plain text to simple HTML that preserves line breaks and looks
+    natural in email clients (full-width, normal font size)."""
+    safe = _html.escape(text)
+    paragraphs = safe.split("\n\n")
+    body_parts = []
+    for p in paragraphs:
+        lines = p.strip().replace("\n", "<br>\n")
+        if lines:
+            body_parts.append(f"<p style=\"margin:0 0 16px 0\">{lines}</p>")
+    inner = "\n".join(body_parts)
+    return (
+        '<div style="font-family:Arial,Helvetica,sans-serif;font-size:14px;'
+        'color:#222;line-height:1.6;max-width:600px">\n'
+        f'{inner}\n'
+        '</div>'
+    )
+
+
 def send_email(to: str, subject: str, body: str, sender: str = None,
                cc: str = None,
                pdf_bytes: bytes = None, pdf_filename: str = None) -> dict:
     """
-    Send a plain-text email via Gmail API, with optional CC and PDF attachment.
+    Send an HTML email via Gmail API, with optional CC and PDF attachment.
+
+    The plain-text body is auto-converted to simple HTML so it renders at
+    normal width in all email clients.  A plain-text fallback is included.
 
     Args:
         to:           Recipient email address(es), comma-separated
         cc:           CC email address(es), comma-separated (optional)
         subject:      Email subject line
-        body:         Plain text email body
+        body:         Plain text email body (converted to HTML automatically)
         sender:       From address (defaults to GMAIL_SENDER secret)
         pdf_bytes:    Raw PDF bytes to attach (optional)
         pdf_filename: Attachment filename, e.g. 'INV-1234.pdf' (optional)
@@ -77,7 +102,8 @@ def send_email(to: str, subject: str, body: str, sender: str = None,
     Returns:
         Gmail API message resource dict with 'id' and 'threadId'
     """
-    from_addr = sender or _secret("GMAIL_SENDER", "ar@perplexity.ai")
+    raw_addr = sender or _secret("GMAIL_SENDER", "ar@perplexity.ai")
+    from_addr = f"{SENDER_NAME} <{raw_addr}>"
 
     msg = MIMEMultipart("mixed")
     msg["To"] = to
@@ -85,7 +111,12 @@ def send_email(to: str, subject: str, body: str, sender: str = None,
     if cc:
         msg["Cc"] = cc
     msg["Subject"] = subject
-    msg.attach(MIMEText(body, "plain"))
+
+    # Attach both plain text and HTML so every client gets a good render
+    alt = MIMEMultipart("alternative")
+    alt.attach(MIMEText(body, "plain"))
+    alt.attach(MIMEText(_plain_to_html(body), "html"))
+    msg.attach(alt)
 
     if pdf_bytes:
         part = MIMEApplication(pdf_bytes, _subtype="pdf")
