@@ -150,7 +150,7 @@ def _run_auth_flow():
     }
 
     flow = InstalledAppFlow.from_client_config(client_config, scopes=SCOPES)
-    creds = flow.run_local_server(port=0)
+    creds = flow.run_local_server(port=0, prompt="consent")
 
     print("\n" + "="*60)
     print("SUCCESS. Copy this refresh token into GitHub Secrets")
