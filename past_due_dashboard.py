@@ -34,14 +34,14 @@ from google.oauth2.credentials import Credentials
 from netsuite_client import fetch_past_due_invoices, fetch_invoice_pdf
 from gmail_sender import send_email
 
-# ── Page config ─────────────────────────────────────────────────────────────────────
+# ── Page config ───────────────────────────────────────────────────────────────
 st.set_page_config(
     page_title="Past Due AR Dashboard",
-    page_icon="💰",
+    page_icon="\U0001f4b0",
     layout="wide",
 )
 
-# ── Secrets helper ──────────────────────────────────────────────────────────────────
+# ── Secrets helper ────────────────────────────────────────────────────────────
 def _secret(key: str, default: str = None) -> str:
     """Read from st.secrets (Streamlit Cloud) or os.environ (GitHub Actions / local)."""
     try:
@@ -54,14 +54,14 @@ def _secret(key: str, default: str = None) -> str:
         raise KeyError(key)
     return val
 
-# ── Password gate ───────────────────────────────────────────────────────────────────
+# ── Password gate ─────────────────────────────────────────────────────────────
 def _check_password():
     correct = _secret("DASHBOARD_PASSWORD", "")
     if not correct:
         return
     if st.session_state.get("authenticated"):
         return
-    st.title("💰 Past Due AR Dashboard")
+    st.title("\U0001f4b0 Past Due AR Dashboard")
     pwd = st.text_input("Password", type="password")
     if st.button("Login"):
         if pwd == correct:
@@ -73,7 +73,7 @@ def _check_password():
 
 _check_password()
 
-# ── Constants ─────────────────────────────────────────────────────────────────────
+# ── Constants ─────────────────────────────────────────────────────────────────
 TOKEN_URI   = "https://oauth2.googleapis.com/token"
 SCOPES      = [
     "https://www.googleapis.com/auth/gmail.send",
@@ -86,7 +86,7 @@ SENDER      = _secret("GMAIL_SENDER", "ar@perplexity.ai")
 AR_CC       = "ar@perplexity.ai"
 SHEETS_BASE = "https://sheets.googleapis.com/v4/spreadsheets"
 
-# ── Google credentials (requests-based, no httplib2) ─────────────────────
+# ── Google credentials (requests-based, no httplib2) ─────────────────────────
 
 @st.cache_resource(show_spinner=False)
 def _get_creds() -> Credentials:
@@ -122,7 +122,7 @@ def _sheets_put(path: str, params: dict, json: dict):
     r.raise_for_status()
     return r.json()
 
-# ── Google Sheets helpers ───────────────────────────────────────────────────────
+# ── Google Sheets helpers ─────────────────────────────────────────────────────
 
 def _ensure_log_tab():
     meta = _sheets_get(f"/{SHEET_ID}")
@@ -158,16 +158,16 @@ def _load_email_log() -> pd.DataFrame:
     except Exception:
         return empty
 
-# ── NetSuite data ─────────────────────────────────────────────────────────────────
+# ── NetSuite data ─────────────────────────────────────────────────────────────
 
 @st.cache_data(ttl=300, show_spinner="Fetching past due invoices from NetSuite...")
 def load_invoices():
     return fetch_past_due_invoices()
 
-# ── Email draft helpers ─────────────────────────────────────────────────────────
+# ── Email draft helpers ───────────────────────────────────────────────────────
 
 def default_subject(inv: dict) -> str:
-    return f"Perplexity Past Due Invoice – {inv['tranid']} ({inv['entity_name']})"
+    return f"Perplexity Past Due Invoice \u2013 {inv['tranid']} ({inv['entity_name']})"
 
 def default_body(inv: dict) -> str:
     amount = f"${inv['amount_due']:,.2f} {inv['currency']}"
@@ -177,20 +177,20 @@ I hope this message finds you well. I'm reaching out regarding invoice {inv['tra
 
 Could you please let us know the status of this payment? If you have already sent it, please disregard this message.
 
-If you have any questions or need a copy of the invoice, please don't hesitate to reach out.
+Please find a copy of the invoice attached for your reference.
 
 Best regards,
-Perplexity AI — Accounts Receivable
+Perplexity AR
 {SENDER}"""
 
-# ── UI ──────────────────────────────────────────────────────────────────────────
+# ── UI ────────────────────────────────────────────────────────────────────────
 
-st.title("💰 Past Due AR Dashboard")
-st.caption(f"Data refreshes every 5 minutes  ·  Sending from **{SENDER}**")
+st.title("\U0001f4b0 Past Due AR Dashboard")
+st.caption(f"Data refreshes every 5 minutes  \u00b7  Sending from **{SENDER}**")
 
 _ensure_log_tab()
 
-tab_invoices, tab_log = st.tabs(["📋 Past Due Invoices", "📨 Email Log"])
+tab_invoices, tab_log = st.tabs(["\U0001f4cb Past Due Invoices", "\U0001f4e8 Email Log"])
 
 with tab_invoices:
     with st.spinner("Loading invoices..."):
@@ -235,10 +235,10 @@ with tab_invoices:
     st.dataframe(styled, width="stretch", hide_index=True)
 
     st.divider()
-    st.subheader("✉️ Send Follow-Up Email")
+    st.subheader("\u2709\ufe0f Send Follow-Up Email")
 
     invoice_options = {
-        f"{inv['tranid']} — {inv['entity_name']} (${inv['amount_due']:,.2f}, {inv['days_overdue']}d overdue)": inv
+        f"{inv['tranid']} \u2014 {inv['entity_name']} (${inv['amount_due']:,.2f}, {inv['days_overdue']}d overdue)": inv
         for inv in invoices
     }
     selected_label = st.selectbox("Select invoice", list(invoice_options.keys()))
@@ -256,20 +256,20 @@ with tab_invoices:
 
     with col_ns:
         st.link_button(
-            "Open in NetSuite ↗",
+            "Open in NetSuite \u2197",
             selected_inv["netsuite_url"],
             use_container_width=False
         )
 
     # PDF preview / download
-    with st.expander("📎 Attach Invoice PDF", expanded=True):
+    with st.expander("\U0001f4ce Attach Invoice PDF", expanded=True):
         attach_pdf = st.checkbox("Attach PDF to email", value=True)
         if st.button("Preview / Download PDF"):
             with st.spinner("Fetching PDF from NetSuite..."):
                 try:
                     pdf_data = fetch_invoice_pdf(selected_inv["id"])
                     st.download_button(
-                        label="⬇️ Download PDF",
+                        label="\u2b07\ufe0f Download PDF",
                         data=pdf_data,
                         file_name=f"{selected_inv['tranid']}.pdf",
                         mime="application/pdf",
@@ -309,7 +309,7 @@ with tab_invoices:
                     st.error(f"Failed to send: {e}")
 
 with tab_log:
-    st.subheader("📨 Email Send History")
+    st.subheader("\U0001f4e8 Email Send History")
     with st.spinner("Loading log..."):
         log_df = _load_email_log()
 
