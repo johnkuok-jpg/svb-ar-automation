@@ -18,7 +18,7 @@ Required env vars / st.secrets:
     NETSUITE_TOKEN_ID, NETSUITE_TOKEN_SECRET
     GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET, GOOGLE_REFRESH_TOKEN
     GOOGLE_SHEET_ID
-    GMAIL_SENDER       (optional, defaults to john.kuok@perplexity.ai)
+    GMAIL_SENDER       (optional, defaults to ar@perplexity.ai)
     DASHBOARD_PASSWORD (required — blocks access without password)
 """
 
@@ -34,14 +34,14 @@ from google.oauth2.credentials import Credentials
 from netsuite_client import fetch_past_due_invoices, fetch_invoice_pdf
 from gmail_sender import send_email
 
-# ── Page config ───────────────────────────────────────────────────────────────
+# ── Page config ─────────────────────────────────────────────────────────────────────
 st.set_page_config(
     page_title="Past Due AR Dashboard",
     page_icon="💰",
     layout="wide",
 )
 
-# ── Secrets helper ────────────────────────────────────────────────────────────
+# ── Secrets helper ──────────────────────────────────────────────────────────────────
 def _secret(key: str, default: str = None) -> str:
     """Read from st.secrets (Streamlit Cloud) or os.environ (GitHub Actions / local)."""
     try:
@@ -54,7 +54,7 @@ def _secret(key: str, default: str = None) -> str:
         raise KeyError(key)
     return val
 
-# ── Password gate ─────────────────────────────────────────────────────────────
+# ── Password gate ───────────────────────────────────────────────────────────────────
 def _check_password():
     correct = _secret("DASHBOARD_PASSWORD", "")
     if not correct:
@@ -73,7 +73,7 @@ def _check_password():
 
 _check_password()
 
-# ── Constants ─────────────────────────────────────────────────────────────────
+# ── Constants ─────────────────────────────────────────────────────────────────────
 TOKEN_URI   = "https://oauth2.googleapis.com/token"
 SCOPES      = [
     "https://www.googleapis.com/auth/gmail.send",
@@ -82,11 +82,11 @@ SCOPES      = [
 ]
 LOG_TAB     = "email_log"
 SHEET_ID    = _secret("GOOGLE_SHEET_ID", "1PDLXi7ZQxvDSeUbdf7_5ft1Npq7oIBad9PgTl0R2CpM")
-SENDER      = _secret("GMAIL_SENDER", "john.kuok@perplexity.ai")
+SENDER      = _secret("GMAIL_SENDER", "ar@perplexity.ai")
 AR_CC       = "ar@perplexity.ai"
 SHEETS_BASE = "https://sheets.googleapis.com/v4/spreadsheets"
 
-# ── Google credentials (requests-based, no httplib2) ─────────────────────────
+# ── Google credentials (requests-based, no httplib2) ─────────────────────
 
 @st.cache_resource(show_spinner=False)
 def _get_creds() -> Credentials:
@@ -122,7 +122,7 @@ def _sheets_put(path: str, params: dict, json: dict):
     r.raise_for_status()
     return r.json()
 
-# ── Google Sheets helpers ─────────────────────────────────────────────────────
+# ── Google Sheets helpers ───────────────────────────────────────────────────────
 
 def _ensure_log_tab():
     meta = _sheets_get(f"/{SHEET_ID}")
@@ -158,13 +158,13 @@ def _load_email_log() -> pd.DataFrame:
     except Exception:
         return empty
 
-# ── NetSuite data ─────────────────────────────────────────────────────────────
+# ── NetSuite data ─────────────────────────────────────────────────────────────────
 
 @st.cache_data(ttl=300, show_spinner="Fetching past due invoices from NetSuite...")
 def load_invoices():
     return fetch_past_due_invoices()
 
-# ── Email draft helpers ───────────────────────────────────────────────────────
+# ── Email draft helpers ─────────────────────────────────────────────────────────
 
 def default_subject(inv: dict) -> str:
     return f"Perplexity Past Due Invoice – {inv['tranid']} ({inv['entity_name']})"
@@ -183,7 +183,7 @@ Best regards,
 Perplexity AI — Accounts Receivable
 {SENDER}"""
 
-# ── UI ────────────────────────────────────────────────────────────────────────
+# ── UI ──────────────────────────────────────────────────────────────────────────
 
 st.title("💰 Past Due AR Dashboard")
 st.caption(f"Data refreshes every 5 minutes  ·  Sending from **{SENDER}**")

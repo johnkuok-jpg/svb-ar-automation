@@ -2,13 +2,15 @@
 gmail_sender.py
 
 Sends emails via the Gmail API using OAuth2.
-Reads credentials from environment variables (same pattern as pipeline.py).
+Uses a *separate* refresh token (AR_GMAIL_REFRESH_TOKEN) that was
+authorised as ar@perplexity.ai so that userId="me" sends from that
+mailbox.  Falls back to GOOGLE_REFRESH_TOKEN if the AR token is not set.
 
 Required env vars / st.secrets:
     GOOGLE_CLIENT_ID
     GOOGLE_CLIENT_SECRET
-    GOOGLE_REFRESH_TOKEN
-    GMAIL_SENDER          (optional, defaults to authenticated user)
+    AR_GMAIL_REFRESH_TOKEN   (authorised as ar@perplexity.ai)
+    GMAIL_SENDER             (optional, defaults to ar@perplexity.ai)
 """
 
 import base64
@@ -43,9 +45,12 @@ SCOPES = [
 ]
 
 def _get_gmail_service():
+    # Use the AR-specific token so userId="me" resolves to ar@perplexity.ai
+    refresh_token = _secret("AR_GMAIL_REFRESH_TOKEN",
+                            _secret("GOOGLE_REFRESH_TOKEN"))
     creds = Credentials(
         token=None,
-        refresh_token=_secret("GOOGLE_REFRESH_TOKEN"),
+        refresh_token=refresh_token,
         token_uri=TOKEN_URI,
         client_id=_secret("GOOGLE_CLIENT_ID"),
         client_secret=_secret("GOOGLE_CLIENT_SECRET"),
@@ -72,7 +77,7 @@ def send_email(to: str, subject: str, body: str, sender: str = None,
     Returns:
         Gmail API message resource dict with 'id' and 'threadId'
     """
-    from_addr = sender or _secret("GMAIL_SENDER", "me")
+    from_addr = sender or _secret("GMAIL_SENDER", "ar@perplexity.ai")
 
     msg = MIMEMultipart("mixed")
     msg["To"] = to
