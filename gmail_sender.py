@@ -166,9 +166,11 @@ def send_email(to: str, subject: str, body: str, sender: str = None,
         msg["Cc"] = cc
     msg["Subject"] = subject
 
-    # Force UTF-8 on the entire message so special characters (en dash, etc.)
-    # are transmitted correctly instead of being double-encoded.
-    msg.set_charset("utf-8")
+    # NOTE: do NOT call msg.set_charset("utf-8") here.
+    # On a multipart message it adds Content-Transfer-Encoding: base64 to the
+    # top-level headers, which is invalid per RFC 2045 §6.4 and causes Gmail
+    # to mangle the MIME structure (breaking inline CID image attachments).
+    # UTF-8 is already set correctly on each individual MIMEText part.
 
     # "related" wraps the HTML + inline images so CID references work
     related = MIMEMultipart("related")
