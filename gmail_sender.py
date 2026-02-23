@@ -185,6 +185,7 @@ def send_email(to: str, subject: str, body: str, sender: str = None,
     if _LOGO_BYTES:
         img_part = MIMEImage(_LOGO_BYTES, _subtype="png")
         img_part.add_header("Content-ID", f"<{_LOGO_CID}>")
+        img_part.add_header("X-Attachment-Id", _LOGO_CID)
         img_part.add_header("Content-Disposition", "inline", filename="perplexity_logo.png")
         related.attach(img_part)
 
