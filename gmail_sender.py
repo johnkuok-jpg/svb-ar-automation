@@ -29,14 +29,18 @@ from googleapiclient.discovery import build
 TOKEN_URI = "https://oauth2.googleapis.com/token"
 SENDER_NAME = "Perplexity AR"
 
-# Logo for HTML email signature — embedded as a CID inline attachment
-# The file in the repo is base64-encoded PNG text.
+# Logo for HTML email signature — embedded as a CID inline attachment.
+# The file stores the PNG as base64-encoded text.  We decode it at import
+# time so that _LOGO_BYTES holds raw PNG data ready for MIMEImage.
 _LOGO_PATH = pathlib.Path(__file__).with_name("perplexity_logo.png")
 _LOGO_CID = "perplexity-logo"  # Content-ID referenced in <img src="cid:...">
 
 try:
     _raw = _LOGO_PATH.read_text().strip()
     _LOGO_BYTES = base64.b64decode(_raw)
+    # Quick sanity check: PNG files start with the 8-byte signature
+    if _LOGO_BYTES[:4] != b'\x89PNG':
+        _LOGO_BYTES = None
 except Exception:
     _LOGO_BYTES = None
 
