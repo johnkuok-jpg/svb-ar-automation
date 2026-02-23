@@ -16,7 +16,9 @@ Required env vars / st.secrets:
 import base64
 import html as _html
 import os
+import pathlib
 from email.mime.application import MIMEApplication
+from email.mime.image import MIMEImage
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 
@@ -27,11 +29,17 @@ from googleapiclient.discovery import build
 TOKEN_URI = "https://oauth2.googleapis.com/token"
 SENDER_NAME = "Perplexity AR"
 
-# Public URL for the Perplexity logo (served from the GitHub repo)
-_LOGO_URL = (
-    "https://raw.githubusercontent.com/johnkuok-jpg/"
-    "svb-ar-automation/main/perplexity_logo.png"
-)
+# Logo for HTML email signature — embedded as a CID inline attachment
+# The file in the repo is base64-encoded PNG text.
+_LOGO_PATH = pathlib.Path(__file__).with_name("perplexity_logo.png")
+_LOGO_CID = "perplexity-logo"  # Content-ID referenced in <img src="cid:...">
+
+try:
+    _raw = _LOGO_PATH.read_text().strip()
+    _LOGO_BYTES = base64.b64decode(_raw)
+except Exception:
+    _LOGO_BYTES = None
+
 
 def _secret(key: str, default: str = None) -> str:
     """Read from st.secrets (Streamlit Cloud) or os.environ (GitHub Actions / local)."""
@@ -69,11 +77,13 @@ def _get_gmail_service():
 
 
 def _signature_html(sender_addr: str) -> str:
-    """Build an HTML email signature with the Perplexity logo."""
-    logo_tag = (
-        f'<img src="{_LOGO_URL}"'
-        ' alt="Perplexity" width="140" style="display:block;margin-bottom:8px" />'
-    )
+    """Build an HTML email signature with the Perplexity logo via CID reference."""
+    logo_tag = ""
+    if _LOGO_BYTES:
+        logo_tag = (
+            f'<img src="cid:{_LOGO_CID}"'
+            ' alt="Perplexity" width="140" style="display:block;margin-bottom:8px" />'
+        )
     return (
         '<table cellpadding="0" cellspacing="0" border="0" '
         'style="margin-top:24px;font-family:Arial,Helvetica,sans-serif;font-size:14px;color:#222">'
@@ -144,6 +154,7 @@ def send_email(to: str, subject: str, body: str, sender: str = None,
     raw_addr = sender or _secret("GMAIL_SENDER", "ar@perplexity.ai")
     from_addr = f"{SENDER_NAME} <{raw_addr}>"
 
+    # Build a "related" container so inline CID images resolve in the HTML part
     msg = MIMEMultipart("mixed")
     msg["To"] = to
     msg["From"] = from_addr
@@ -155,11 +166,23 @@ def send_email(to: str, subject: str, body: str, sender: str = None,
     # are transmitted correctly instead of being double-encoded.
     msg.set_charset("utf-8")
 
-    # Attach both plain text and HTML so every client gets a good render
+    # "related" wraps the HTML + inline images so CID references work
+    related = MIMEMultipart("related")
+
+    # "alternative" wraps plain text + HTML
     alt = MIMEMultipart("alternative")
     alt.attach(MIMEText(body, "plain", "utf-8"))
     alt.attach(MIMEText(_plain_to_html(body, raw_addr), "html", "utf-8"))
-    msg.attach(alt)
+    related.attach(alt)
+
+    # Attach logo as inline CID image
+    if _LOGO_BYTES:
+        img_part = MIMEImage(_LOGO_BYTES, _subtype="png")
+        img_part.add_header("Content-ID", f"<{_LOGO_CID}>")
+        img_part.add_header("Content-Disposition", "inline", filename="perplexity_logo.png")
+        related.attach(img_part)
+
+    msg.attach(related)
 
     if pdf_bytes:
         part = MIMEApplication(pdf_bytes, _subtype="pdf")
