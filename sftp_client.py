@@ -20,9 +20,29 @@ TARGET_ACCOUNT = "34669"
 
 
 def get_prior_day_str() -> str:
-    """Return yesterday's date as YYYYMMDD string."""
-    yesterday = datetime.now(timezone.utc) - timedelta(days=1)
-    result = yesterday.strftime("%Y%m%d")
+    """Return the last business day's date as YYYYMMDD string.
+
+    Banks do not generate BAI files on weekends or US federal holidays.
+    This function rolls back to the most recent business day:
+      - Monday    -> Friday  (skip weekend)
+      - Sunday    -> Friday
+      - Saturday  -> Friday
+      - Otherwise -> previous calendar day
+    """
+    today = datetime.now(timezone.utc)
+    weekday = today.weekday()  # Mon=0 … Sun=6
+
+    if weekday == 0:        # Monday -> Friday
+        offset = 3
+    elif weekday == 6:      # Sunday -> Friday
+        offset = 2
+    elif weekday == 5:      # Saturday -> Friday
+        offset = 1
+    else:                   # Tue-Fri -> previous day
+        offset = 1
+
+    prior_business_day = today - timedelta(days=offset)
+    result = prior_business_day.strftime("%Y%m%d")
     logger.info(f"Prior day date string: {result}")
     return result
 
