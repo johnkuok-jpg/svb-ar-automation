@@ -16,7 +16,6 @@ Required env vars / st.secrets:
 import base64
 import html as _html
 import os
-import pathlib
 from email.mime.application import MIMEApplication
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
@@ -28,12 +27,11 @@ from googleapiclient.discovery import build
 TOKEN_URI = "https://oauth2.googleapis.com/token"
 SENDER_NAME = "Perplexity AR"
 
-# Logo for HTML email signature (base64-encoded PNG, loaded once)
-_LOGO_PATH = pathlib.Path(__file__).with_name("perplexity_logo.png")
-try:
-    _LOGO_B64 = base64.b64encode(_LOGO_PATH.read_bytes()).decode()
-except FileNotFoundError:
-    _LOGO_B64 = None
+# Public URL for the Perplexity logo (served from the GitHub repo)
+_LOGO_URL = (
+    "https://raw.githubusercontent.com/johnkuok-jpg/"
+    "svb-ar-automation/main/perplexity_logo.png"
+)
 
 def _secret(key: str, default: str = None) -> str:
     """Read from st.secrets (Streamlit Cloud) or os.environ (GitHub Actions / local)."""
@@ -72,13 +70,10 @@ def _get_gmail_service():
 
 def _signature_html(sender_addr: str) -> str:
     """Build an HTML email signature with the Perplexity logo."""
-    logo_tag = ""
-    if _LOGO_B64:
-        logo_tag = (
-            '<img src="data:image/png;base64,'
-            f'{_LOGO_B64}"'
-            ' alt="Perplexity" width="140" style="display:block;margin-bottom:8px" />'
-        )
+    logo_tag = (
+        f'<img src="{_LOGO_URL}"'
+        ' alt="Perplexity" width="140" style="display:block;margin-bottom:8px" />'
+    )
     return (
         '<table cellpadding="0" cellspacing="0" border="0" '
         'style="margin-top:24px;font-family:Arial,Helvetica,sans-serif;font-size:14px;color:#222">'
@@ -156,10 +151,14 @@ def send_email(to: str, subject: str, body: str, sender: str = None,
         msg["Cc"] = cc
     msg["Subject"] = subject
 
+    # Force UTF-8 on the entire message so special characters (en dash, etc.)
+    # are transmitted correctly instead of being double-encoded.
+    msg.set_charset("utf-8")
+
     # Attach both plain text and HTML so every client gets a good render
     alt = MIMEMultipart("alternative")
-    alt.attach(MIMEText(body, "plain"))
-    alt.attach(MIMEText(_plain_to_html(body, raw_addr), "html"))
+    alt.attach(MIMEText(body, "plain", "utf-8"))
+    alt.attach(MIMEText(_plain_to_html(body, raw_addr), "html", "utf-8"))
     msg.attach(alt)
 
     if pdf_bytes:
