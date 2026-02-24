@@ -319,14 +319,16 @@ def _tran_type_label(type_code: str) -> str:
 
 
 def _format_bai_date(raw: str) -> str:
-    """Convert BAI2 date YYMMDD or YYYYMMDD to MM/DD/YYYY."""
+    """Convert BAI2 date YYMMDD or YYYYMMDD to M/D/YYYY (no leading zeros)."""
     from datetime import datetime as _dt
     raw = raw.strip()
     try:
         if len(raw) == 6:
-            return _dt.strptime(raw, "%y%m%d").strftime("%m/%d/%Y")
+            dt = _dt.strptime(raw, "%y%m%d")
+            return f"{dt.month}/{dt.day}/{dt.year}"
         elif len(raw) == 8:
-            return _dt.strptime(raw, "%Y%m%d").strftime("%m/%d/%Y")
+            dt = _dt.strptime(raw, "%Y%m%d")
+            return f"{dt.month}/{dt.day}/{dt.year}"
     except ValueError:
         pass
     return raw

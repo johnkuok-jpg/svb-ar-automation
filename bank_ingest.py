@@ -137,7 +137,7 @@ def append_to_sheet(sheets, spreadsheet_id: str, tab: str, rows: list[dict]) -> 
     sheets.spreadsheets().values().append(
         spreadsheetId=spreadsheet_id,
         range=f"{tab}!A1",
-        valueInputOption="RAW",
+        valueInputOption="USER_ENTERED",
         insertDataOption="INSERT_ROWS",
         body={"values": values},
     ).execute()
