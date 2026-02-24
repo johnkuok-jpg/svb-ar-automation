@@ -8,7 +8,7 @@ Auth: username + password.
 import os
 import re
 import logging
-from datetime import datetime, timedelta, timezone
+from datetime import datetime, timezone
 from typing import Optional
 
 import paramiko
@@ -19,31 +19,20 @@ logger = logging.getLogger(__name__)
 TARGET_ACCOUNT = "34669"
 
 
-def get_prior_day_str() -> str:
-    """Return the last business day's date as YYYYMMDD string.
+def get_pd_file_date_str() -> str:
+    """Return today's date as YYYYMMDD string for the PD filename.
 
-    Banks do not generate BAI files on weekends or US federal holidays.
-    This function rolls back to the most recent business day:
-      - Monday    -> Friday  (skip weekend)
-      - Sunday    -> Friday
-      - Saturday  -> Friday
-      - Otherwise -> previous calendar day
+    SVB names prior-day files with the *processing date* (today),
+    not the transaction date.  For example, a file generated on
+    Tuesday 2026-02-24 containing Monday's transactions is named
+    ``..._PD_20260224_34669.TXT``.
+
+    The pipeline runs on weekdays only (via GitHub Actions cron),
+    so no weekend/holiday logic is needed here.
     """
     today = datetime.now(timezone.utc)
-    weekday = today.weekday()  # Mon=0 … Sun=6
-
-    if weekday == 0:        # Monday -> Friday
-        offset = 3
-    elif weekday == 6:      # Sunday -> Friday
-        offset = 2
-    elif weekday == 5:      # Saturday -> Friday
-        offset = 1
-    else:                   # Tue-Fri -> previous day
-        offset = 1
-
-    prior_business_day = today - timedelta(days=offset)
-    result = prior_business_day.strftime("%Y%m%d")
-    logger.info(f"Prior day date string: {result}")
+    result = today.strftime("%Y%m%d")
+    logger.info(f"PD file date string (today): {result}")
     return result
 
 
@@ -99,7 +88,7 @@ def download_bai_file(
     Raises FileNotFoundError if the target file cannot be located.
     """
     os.makedirs(local_dir, exist_ok=True)
-    date_str = get_prior_day_str()
+    date_str = get_pd_file_date_str()
 
     sftp = connect_sftp(host, port, username, password)
     try:
