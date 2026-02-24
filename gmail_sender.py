@@ -16,9 +16,7 @@ Required env vars / st.secrets:
 import base64
 import html as _html
 import os
-import pathlib
 from email.mime.application import MIMEApplication
-from email.mime.image import MIMEImage
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 
@@ -29,20 +27,8 @@ from googleapiclient.discovery import build
 TOKEN_URI = "https://oauth2.googleapis.com/token"
 SENDER_NAME = "Perplexity AR"
 
-# Logo for HTML email signature — embedded as a CID inline attachment.
-# The file stores the PNG as base64-encoded text.  We decode it at import
-# time so that _LOGO_BYTES holds raw PNG data ready for MIMEImage.
-_LOGO_PATH = pathlib.Path(__file__).with_name("perplexity_logo.png")
-_LOGO_CID = "perplexity-logo"  # Content-ID referenced in <img src="cid:...">
-
-try:
-    _raw = _LOGO_PATH.read_text().strip()
-    _LOGO_BYTES = base64.b64decode(_raw)
-    # Quick sanity check: PNG files start with the 8-byte signature
-    if _LOGO_BYTES[:4] != b'\x89PNG':
-        _LOGO_BYTES = None
-except Exception:
-    _LOGO_BYTES = None
+# Logo for HTML email signature — hosted publicly so all email clients can fetch it.
+_LOGO_URL = "https://iili.io/qKEmkhP.png"
 
 
 def _secret(key: str, default: str = None) -> str:
@@ -81,13 +67,12 @@ def _get_gmail_service():
 
 
 def _signature_html(sender_addr: str) -> str:
-    """Build an HTML email signature with the Perplexity logo via CID reference."""
-    logo_tag = ""
-    if _LOGO_BYTES:
-        logo_tag = (
-            f'<img src="cid:{_LOGO_CID}"'
-            ' alt="Perplexity" width="140" style="display:block;margin-bottom:8px" />'
-        )
+    """Build an HTML email signature with the Perplexity logo via hosted URL."""
+    logo_tag = (
+        f'<img src="{_LOGO_URL}"'
+        ' alt="Perplexity" width="140"'
+        ' style="display:block;margin-bottom:8px" />'
+    )
     return (
         '<table cellpadding="0" cellspacing="0" border="0" '
         'style="margin-top:24px;font-family:Arial,Helvetica,sans-serif;font-size:14px;color:#222">'
@@ -107,7 +92,7 @@ def _plain_to_html(text: str, sender_addr: str) -> str:
     Replaces the plain-text signature block with a branded HTML signature."""
     safe = _html.escape(text)
 
-    # Split off signature (everything from "Best regards," onward)
+    # Split off signature (everything from \"Best regards,\" onward)
     sig_marker = _html.escape("Best regards,")
     if sig_marker in safe:
         body_text, _ = safe.split(sig_marker, 1)
@@ -158,7 +143,6 @@ def send_email(to: str, subject: str, body: str, sender: str = None,
     raw_addr = sender or _secret("GMAIL_SENDER", "ar@perplexity.ai")
     from_addr = f"{SENDER_NAME} <{raw_addr}>"
 
-    # Build a "related" container so inline CID images resolve in the HTML part
     msg = MIMEMultipart("mixed")
     msg["To"] = to
     msg["From"] = from_addr
@@ -166,30 +150,11 @@ def send_email(to: str, subject: str, body: str, sender: str = None,
         msg["Cc"] = cc
     msg["Subject"] = subject
 
-    # NOTE: do NOT call msg.set_charset("utf-8") here.
-    # On a multipart message it adds Content-Transfer-Encoding: base64 to the
-    # top-level headers, which is invalid per RFC 2045 §6.4 and causes Gmail
-    # to mangle the MIME structure (breaking inline CID image attachments).
-    # UTF-8 is already set correctly on each individual MIMEText part.
-
-    # "related" wraps the HTML + inline images so CID references work
-    related = MIMEMultipart("related")
-
-    # "alternative" wraps plain text + HTML
+    # plain + HTML alternative pair
     alt = MIMEMultipart("alternative")
     alt.attach(MIMEText(body, "plain", "utf-8"))
     alt.attach(MIMEText(_plain_to_html(body, raw_addr), "html", "utf-8"))
-    related.attach(alt)
-
-    # Attach logo as inline CID image
-    if _LOGO_BYTES:
-        img_part = MIMEImage(_LOGO_BYTES, _subtype="png")
-        img_part.add_header("Content-ID", f"<{_LOGO_CID}>")
-        img_part.add_header("X-Attachment-Id", _LOGO_CID)
-        img_part.add_header("Content-Disposition", "inline", filename="perplexity_logo.png")
-        related.attach(img_part)
-
-    msg.attach(related)
+    msg.attach(alt)
 
     if pdf_bytes:
         part = MIMEApplication(pdf_bytes, _subtype="pdf")
