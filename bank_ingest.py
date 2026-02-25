@@ -29,13 +29,16 @@ import sys
 from datetime import datetime
 from pathlib import Path
 
+
 from google.auth.transport.requests import Request
 from google.oauth2.credentials import Credentials
 from googleapiclient.discovery import build
 
+
 from bai2_parser import parse_bai2, file_to_transaction_rows
 from sftp_client import download_bai_file
 from drive_uploader import upload_to_drive
+
 
 logging.basicConfig(
     level=logging.INFO,
@@ -44,6 +47,7 @@ logging.basicConfig(
 )
 logger = logging.getLogger("bank_ingest")
 
+
 RUN_LOG_FILE = "ingest_log.json"
 TOKEN_URI    = "https://oauth2.googleapis.com/token"
 SCOPES = [
@@ -51,6 +55,7 @@ SCOPES = [
     "https://www.googleapis.com/auth/spreadsheets",
     "https://www.googleapis.com/auth/gmail.send",
 ]
+
 
 
 def get_config() -> dict:
@@ -83,6 +88,7 @@ def get_config() -> dict:
     return config
 
 
+
 def get_google_credentials(config: dict) -> Credentials:
     creds = Credentials(
         token=None,
@@ -94,6 +100,7 @@ def get_google_credentials(config: dict) -> Credentials:
     )
     creds.refresh(Request())
     return creds
+
 
 
 def write_csv(rows: list, output_path: str) -> int:
@@ -108,6 +115,7 @@ def write_csv(rows: list, output_path: str) -> int:
         writer.writerows(rows)
     logger.info(f"Wrote {len(rows)} rows to {output_path}")
     return len(rows)
+
 
 
 def append_to_sheet(sheets, spreadsheet_id: str, tab: str, rows: list[dict]) -> int:
@@ -137,13 +145,14 @@ def append_to_sheet(sheets, spreadsheet_id: str, tab: str, rows: list[dict]) -> 
     sheets.spreadsheets().values().append(
         spreadsheetId=spreadsheet_id,
         range=f"{tab}!A1",
-        valueInputOption="USER_ENTERED",
+        valueInputOption="RAW",
         insertDataOption="INSERT_ROWS",
         body={"values": values},
     ).execute()
 
     logger.info(f"Appended {len(rows)} rows to '{tab}' tab")
     return len(rows)
+
 
 
 def move_file_in_drive(drive, file_id: str, src_folder_id: str, dst_folder_id: str) -> None:
@@ -155,6 +164,7 @@ def move_file_in_drive(drive, file_id: str, src_folder_id: str, dst_folder_id: s
         fields="id, parents",
     ).execute()
     logger.info(f"Moved file {file_id} to archive folder")
+
 
 
 def append_run_log(work_dir: str, entry: dict):
@@ -170,6 +180,7 @@ def append_run_log(work_dir: str, entry: dict):
     history = history[:100]
     with open(log_path, "w") as f:
         json.dump(history, f, indent=2)
+
 
 
 def run():

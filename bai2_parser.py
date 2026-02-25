@@ -361,6 +361,7 @@ def file_to_transaction_rows(file_rec: FileRecord) -> List[dict]:
                     "Bank Ref #":         txn.bank_ref,
                     "End to End ID":      "",
                     "Customer Ref #":     txn.customer_ref,
+                    "Memo":               "",
                     "Description":        txn.text,
                     "Reason for Payment": "",
                     "Notes":              "",
