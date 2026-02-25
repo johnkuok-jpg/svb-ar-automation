@@ -34,14 +34,14 @@ from google.oauth2.credentials import Credentials
 from netsuite_client import fetch_past_due_invoices, fetch_invoice_pdf
 from gmail_sender import send_email
 
-# ── Page config ───────────────────────────────────────────────────────────────
+# ── Page config ───────────────────────────────────────────────────────────────────────────
 st.set_page_config(
     page_title="Past Due AR Dashboard",
     page_icon="\U0001f4b0",
     layout="wide",
 )
 
-# ── Secrets helper ────────────────────────────────────────────────────────────
+# ── Secrets helper ────────────────────────────────────────────────────────────────────────
 def _secret(key: str, default: str = None) -> str:
     """Read from st.secrets (Streamlit Cloud) or os.environ (GitHub Actions / local)."""
     try:
@@ -54,7 +54,7 @@ def _secret(key: str, default: str = None) -> str:
         raise KeyError(key)
     return val
 
-# ── Password gate ─────────────────────────────────────────────────────────────
+# ── Password gate ─────────────────────────────────────────────────────────────────────────
 def _check_password():
     correct = _secret("DASHBOARD_PASSWORD", "")
     if not correct:
@@ -73,7 +73,7 @@ def _check_password():
 
 _check_password()
 
-# ── Constants ─────────────────────────────────────────────────────────────────
+# ── Constants ───────────────────────────────────────────────────────────────────────────
 TOKEN_URI   = "https://oauth2.googleapis.com/token"
 SCOPES      = [
     "https://www.googleapis.com/auth/gmail.send",
@@ -86,7 +86,7 @@ SENDER      = _secret("GMAIL_SENDER", "ar@perplexity.ai")
 AR_CC       = "ar@perplexity.ai"
 SHEETS_BASE = "https://sheets.googleapis.com/v4/spreadsheets"
 
-# ── Google credentials (requests-based, no httplib2) ─────────────────────────
+# ── Google credentials (requests-based, no httplib2) ───────────────────────
 
 @st.cache_resource(show_spinner=False)
 def _get_creds() -> Credentials:
@@ -122,7 +122,7 @@ def _sheets_put(path: str, params: dict, json: dict):
     r.raise_for_status()
     return r.json()
 
-# ── Google Sheets helpers ─────────────────────────────────────────────────────
+# ── Google Sheets helpers ───────────────────────────────────────────────────────
 
 def _ensure_log_tab():
     meta = _sheets_get(f"/{SHEET_ID}")
@@ -158,13 +158,13 @@ def _load_email_log() -> pd.DataFrame:
     except Exception:
         return empty
 
-# ── NetSuite data ─────────────────────────────────────────────────────────────
+# ── NetSuite data ───────────────────────────────────────────────────────────────────────
 
 @st.cache_data(ttl=300, show_spinner="Fetching past due invoices from NetSuite...")
 def load_invoices():
     return fetch_past_due_invoices()
 
-# ── Email draft helpers ───────────────────────────────────────────────────────
+# ── Email draft helpers ─────────────────────────────────────────────────────────
 
 def default_subject(inv: dict) -> str:
     return f"Perplexity Past Due Invoice \u2013 {inv['tranid']} ({inv['entity_name']})"
@@ -183,7 +183,7 @@ Best regards,
 Perplexity AR
 {SENDER}"""
 
-# ── UI ────────────────────────────────────────────────────────────────────────
+# ── UI ────────────────────────────────────────────────────────────────────────────────
 
 st.title("\U0001f4b0 Past Due AR Dashboard")
 st.caption(f"Data refreshes every 5 minutes  \u00b7  Sending from **{SENDER}**")
@@ -237,76 +237,199 @@ with tab_invoices:
     st.divider()
     st.subheader("\u2709\ufe0f Send Follow-Up Email")
 
-    invoice_options = {
-        f"{inv['tranid']} \u2014 {inv['entity_name']} (${inv['amount_due']:,.2f}, {inv['days_overdue']}d overdue)": inv
-        for inv in invoices
-    }
-    selected_label = st.selectbox("Select invoice", list(invoice_options.keys()))
-    selected_inv = invoice_options[selected_label]
+    send_mode = st.radio(
+        "Send mode",
+        ["Single Invoice", "Bulk Send \u2014 All Past Due > X Days"],
+        horizontal=True,
+    )
 
-    to_email = st.text_input("To", value=selected_inv.get("billing_email", ""))
-    cc_email = st.text_input("CC", value=AR_CC)
-    subject  = st.text_input("Subject", value=default_subject(selected_inv))
-    body     = st.text_area("Message", value=default_body(selected_inv), height=300)
+    # ── Single invoice mode ───────────────────────────────────────────────────────
+    if send_mode == "Single Invoice":
+        invoice_options = {
+            f"{inv['tranid']} \u2014 {inv['entity_name']} (${inv['amount_due']:,.2f}, {inv['days_overdue']}d overdue)": inv
+            for inv in invoices
+        }
+        selected_label = st.selectbox("Select invoice", list(invoice_options.keys()))
+        selected_inv = invoice_options[selected_label]
 
-    col_send, col_ns = st.columns([1, 4])
+        to_email = st.text_input("To", value=selected_inv.get("billing_email", ""))
+        cc_email = st.text_input("CC", value=AR_CC)
+        subject  = st.text_input("Subject", value=default_subject(selected_inv))
+        body     = st.text_area("Message", value=default_body(selected_inv), height=300)
 
-    with col_send:
-        send_clicked = st.button("Send Email", type="primary", use_container_width=True)
+        col_send, col_ns = st.columns([1, 4])
 
-    with col_ns:
-        st.link_button(
-            "Open in NetSuite \u2197",
-            selected_inv["netsuite_url"],
-            use_container_width=False
+        with col_send:
+            send_clicked = st.button("Send Email", type="primary", use_container_width=True)
+
+        with col_ns:
+            st.link_button(
+                "Open in NetSuite \u2197",
+                selected_inv["netsuite_url"],
+                use_container_width=False
+            )
+
+        # PDF preview / download
+        with st.expander("\U0001f4ce Attach Invoice PDF", expanded=True):
+            attach_pdf = st.checkbox("Attach PDF to email", value=True)
+            if st.button("Preview / Download PDF"):
+                with st.spinner("Fetching PDF from NetSuite..."):
+                    try:
+                        pdf_data = fetch_invoice_pdf(selected_inv["id"])
+                        st.download_button(
+                            label="\u2b07\ufe0f Download PDF",
+                            data=pdf_data,
+                            file_name=f"{selected_inv['tranid']}.pdf",
+                            mime="application/pdf",
+                        )
+                    except Exception as e:
+                        st.error(f"Could not fetch PDF: {e}")
+
+        if send_clicked:
+            if not to_email:
+                st.error("No billing email on file for this customer. Please enter one manually.")
+            else:
+                with st.spinner("Sending..."):
+                    try:
+                        pdf_bytes = None
+                        pdf_filename = None
+                        if attach_pdf:
+                            try:
+                                pdf_bytes = fetch_invoice_pdf(selected_inv["id"])
+                                pdf_filename = f"{selected_inv['tranid']}.pdf"
+                            except Exception as e:
+                                st.warning(f"Could not fetch PDF, sending without attachment: {e}")
+                        send_email(
+                            to=to_email, cc=cc_email, subject=subject, body=body, sender=SENDER,
+                            pdf_bytes=pdf_bytes, pdf_filename=pdf_filename,
+                        )
+                        _log_email(
+                            invoice_id=selected_inv["tranid"],
+                            customer=selected_inv["entity_name"],
+                            to_email=to_email,
+                            cc_email=cc_email,
+                            subject=subject,
+                            body=body,
+                        )
+                        st.success(f"Email sent to **{to_email}**{', CC: ' + cc_email if cc_email else ''}{' with PDF attached' if pdf_bytes else ''} and logged.")
+                        st.cache_data.clear()
+                    except Exception as e:
+                        st.error(f"Failed to send: {e}")
+
+    # ── Bulk send mode ──────────────────────────────────────────────────────────
+    else:
+        min_days = st.number_input(
+            "Minimum days overdue",
+            min_value=1,
+            max_value=999,
+            value=30,
+            step=1,
+            help="Send follow-up emails to all invoices that are more than this many days past due.",
         )
 
-    # PDF preview / download
-    with st.expander("\U0001f4ce Attach Invoice PDF", expanded=True):
-        attach_pdf = st.checkbox("Attach PDF to email", value=True)
-        if st.button("Preview / Download PDF"):
-            with st.spinner("Fetching PDF from NetSuite..."):
-                try:
-                    pdf_data = fetch_invoice_pdf(selected_inv["id"])
-                    st.download_button(
-                        label="\u2b07\ufe0f Download PDF",
-                        data=pdf_data,
-                        file_name=f"{selected_inv['tranid']}.pdf",
-                        mime="application/pdf",
-                    )
-                except Exception as e:
-                    st.error(f"Could not fetch PDF: {e}")
+        bulk_cc = st.text_input("CC (applies to all)", value=AR_CC, key="bulk_cc")
+        bulk_attach = st.checkbox("Attach invoice PDFs", value=True, key="bulk_attach")
 
-    if send_clicked:
-        if not to_email:
-            st.error("No billing email on file for this customer. Please enter one manually.")
+        # Filter invoices
+        eligible = [inv for inv in invoices if inv["days_overdue"] > min_days]
+        has_email = [inv for inv in eligible if inv.get("billing_email")]
+        no_email  = [inv for inv in eligible if not inv.get("billing_email")]
+
+        st.markdown(f"**{len(has_email)}** invoices will be emailed  \u00b7  "
+                    f"**{len(no_email)}** skipped (no billing email on file)")
+
+        if has_email:
+            preview_df = pd.DataFrame([{
+                "Invoice #":    inv["tranid"],
+                "Customer":     inv["entity_name"],
+                "Billing Email": inv["billing_email"],
+                "Amount Due":   inv["amount_due"],
+                "Days Overdue": inv["days_overdue"],
+            } for inv in has_email])
+            st.dataframe(
+                preview_df.style.format({"Amount Due": "${:,.2f}"}),
+                hide_index=True,
+                use_container_width=True,
+            )
+
+        if no_email:
+            with st.expander(f"\u26a0\ufe0f {len(no_email)} invoices skipped (no email)"):
+                skip_df = pd.DataFrame([{
+                    "Invoice #":    inv["tranid"],
+                    "Customer":     inv["entity_name"],
+                    "Amount Due":   inv["amount_due"],
+                    "Days Overdue": inv["days_overdue"],
+                } for inv in no_email])
+                st.dataframe(skip_df.style.format({"Amount Due": "${:,.2f}"}),
+                             hide_index=True, use_container_width=True)
+
+        if not has_email:
+            st.info("No invoices with billing emails match the selected threshold.")
         else:
-            with st.spinner("Sending..."):
-                try:
-                    pdf_bytes = None
-                    pdf_filename = None
-                    if attach_pdf:
-                        try:
-                            pdf_bytes = fetch_invoice_pdf(selected_inv["id"])
-                            pdf_filename = f"{selected_inv['tranid']}.pdf"
-                        except Exception as e:
-                            st.warning(f"Could not fetch PDF, sending without attachment: {e}")
-                    send_email(
-                        to=to_email, cc=cc_email, subject=subject, body=body, sender=SENDER,
-                        pdf_bytes=pdf_bytes, pdf_filename=pdf_filename,
+            bulk_send = st.button(
+                f"\U0001f4e8 Send {len(has_email)} Emails",
+                type="primary",
+                use_container_width=True,
+            )
+
+            if bulk_send:
+                progress = st.progress(0, text="Starting bulk send...")
+                sent_count = 0
+                fail_count = 0
+                results = []
+
+                for i, inv in enumerate(has_email):
+                    label = f"{inv['tranid']} \u2192 {inv['billing_email']}"
+                    progress.progress(
+                        (i) / len(has_email),
+                        text=f"Sending {i + 1}/{len(has_email)}: {label}",
                     )
-                    _log_email(
-                        invoice_id=selected_inv["tranid"],
-                        customer=selected_inv["entity_name"],
-                        to_email=to_email,
-                        cc_email=cc_email,
-                        subject=subject,
-                        body=body,
-                    )
-                    st.success(f"Email sent to **{to_email}**{', CC: ' + cc_email if cc_email else ''}{' with PDF attached' if pdf_bytes else ''} and logged.")
-                    st.cache_data.clear()
-                except Exception as e:
-                    st.error(f"Failed to send: {e}")
+
+                    subj = default_subject(inv)
+                    msg  = default_body(inv)
+
+                    try:
+                        pdf_bytes = None
+                        pdf_filename = None
+                        if bulk_attach:
+                            try:
+                                pdf_bytes = fetch_invoice_pdf(inv["id"])
+                                pdf_filename = f"{inv['tranid']}.pdf"
+                            except Exception:
+                                pass  # send without PDF
+
+                        send_email(
+                            to=inv["billing_email"],
+                            cc=bulk_cc,
+                            subject=subj,
+                            body=msg,
+                            sender=SENDER,
+                            pdf_bytes=pdf_bytes,
+                            pdf_filename=pdf_filename,
+                        )
+                        _log_email(
+                            invoice_id=inv["tranid"],
+                            customer=inv["entity_name"],
+                            to_email=inv["billing_email"],
+                            cc_email=bulk_cc,
+                            subject=subj,
+                            body=msg,
+                        )
+                        sent_count += 1
+                        results.append({"Invoice": inv["tranid"], "To": inv["billing_email"], "Status": "\u2705 Sent"})
+                    except Exception as e:
+                        fail_count += 1
+                        results.append({"Invoice": inv["tranid"], "To": inv["billing_email"], "Status": f"\u274c {e}"})
+
+                progress.progress(1.0, text="Done!")
+
+                if sent_count:
+                    st.success(f"\u2705 {sent_count} email(s) sent successfully.")
+                if fail_count:
+                    st.error(f"\u274c {fail_count} email(s) failed.")
+
+                st.dataframe(pd.DataFrame(results), hide_index=True, use_container_width=True)
+                st.cache_data.clear()
 
 with tab_log:
     st.subheader("\U0001f4e8 Email Send History")
