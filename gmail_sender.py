@@ -27,9 +27,6 @@ from googleapiclient.discovery import build
 TOKEN_URI = "https://oauth2.googleapis.com/token"
 SENDER_NAME = "Perplexity AR"
 
-# Logo for HTML email signature — hosted publicly so all email clients can fetch it.
-_LOGO_URL = "https://iili.io/qKEmkhP.png"
-
 
 def _secret(key: str, default: str = None) -> str:
     """Read from st.secrets (Streamlit Cloud) or os.environ (GitHub Actions / local)."""
@@ -67,18 +64,10 @@ def _get_gmail_service():
 
 
 def _signature_html(sender_addr: str) -> str:
-    """Build an HTML email signature with the Perplexity logo via hosted URL."""
-    logo_tag = (
-        f'<img src="{_LOGO_URL}"'
-        ' alt="Perplexity" width="140"'
-        ' style="display:block;margin-bottom:8px" />'
-    )
+    """Build an HTML email signature (text only, no logo)."""
     return (
         '<table cellpadding="0" cellspacing="0" border="0" '
         'style="margin-top:24px;font-family:Arial,Helvetica,sans-serif;font-size:14px;color:#222">'
-        '<tr><td style="padding-bottom:4px">'
-        f'{logo_tag}'
-        '</td></tr>'
         '<tr><td style="font-weight:bold;padding-bottom:2px">Perplexity AR</td></tr>'
         f'<tr><td><a href="mailto:{_html.escape(sender_addr)}" '
         f'style="color:#1a73e8;text-decoration:none">{_html.escape(sender_addr)}</a></td></tr>'
