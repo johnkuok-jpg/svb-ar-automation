@@ -118,6 +118,54 @@ def write_csv(rows: list, output_path: str) -> int:
 
 
 
+def _get_sheet_id(sheets, spreadsheet_id: str, tab_name: str) -> int:
+    """Look up the numeric sheetId for a tab by name."""
+    meta = sheets.spreadsheets().get(
+        spreadsheetId=spreadsheet_id,
+        fields="sheets.properties"
+    ).execute()
+    for sheet in meta.get("sheets", []):
+        props = sheet.get("properties", {})
+        if props.get("title") == tab_name:
+            return props["sheetId"]
+    raise ValueError(f"Worksheet '{tab_name}' not found in spreadsheet")
+
+
+def _ensure_date_column_format(sheets, spreadsheet_id: str, sheet_id: int) -> None:
+    """
+    Set Column A to Date format (M/d/yy) so that USER_ENTERED dates
+    are stored as real dates instead of text.  This overrides any
+    'Plain Text' format that may have been set manually on the column.
+    """
+    sheets.spreadsheets().batchUpdate(
+        spreadsheetId=spreadsheet_id,
+        body={
+            "requests": [
+                {
+                    "repeatCell": {
+                        "range": {
+                            "sheetId": sheet_id,
+                            "startRowIndex": 1,
+                            "startColumnIndex": 0,
+                            "endColumnIndex": 1,
+                        },
+                        "cell": {
+                            "userEnteredFormat": {
+                                "numberFormat": {
+                                    "type": "DATE",
+                                    "pattern": "M/d/yy"
+                                }
+                            }
+                        },
+                        "fields": "userEnteredFormat.numberFormat"
+                    }
+                }
+            ]
+        },
+    ).execute()
+    logger.info("Set Column A format to Date (M/d/yy)")
+
+
 def append_to_sheet(sheets, spreadsheet_id: str, tab: str, rows: list[dict]) -> int:
     """
     Append rows (list of dicts) to a sheet tab.
@@ -136,6 +184,10 @@ def append_to_sheet(sheets, spreadsheet_id: str, tab: str, rows: list[dict]) -> 
     )
     has_header = bool(result.get("values"))
 
+    # Ensure Column A is formatted as Date so USER_ENTERED parses dates
+    sheet_id = _get_sheet_id(sheets, spreadsheet_id, tab)
+    _ensure_date_column_format(sheets, spreadsheet_id, sheet_id)
+
     values = []
     if not has_header:
         values.append(list(rows[0].keys()))
@@ -145,7 +197,7 @@ def append_to_sheet(sheets, spreadsheet_id: str, tab: str, rows: list[dict]) -> 
     sheets.spreadsheets().values().append(
         spreadsheetId=spreadsheet_id,
         range=f"{tab}!A1",
-        valueInputOption="RAW",
+        valueInputOption="USER_ENTERED",
         insertDataOption="INSERT_ROWS",
         body={"values": values},
     ).execute()
