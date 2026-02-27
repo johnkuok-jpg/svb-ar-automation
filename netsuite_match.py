@@ -118,6 +118,17 @@ def read_sheet_rows(sheets, spreadsheet_id: str, tab: str) -> list[dict]:
     return rows
 
 
+# Column indices for the dedup key fields (based on standard column order).
+# We use positional indices instead of header names because the cash_app tab
+# has a duplicate "Date" column (col A = transaction date, col Q = run
+# timestamp) and dict(zip(headers, ...)) would let col Q overwrite col A,
+# breaking dedup and causing the entire input to be re-appended every run.
+_COL_DATE         = 0   # A – Date
+_COL_CREDIT_AMT   = 8   # I – Credit Amount
+_COL_BANK_REF     = 10  # K – Bank Ref #
+_COL_DESCRIPTION  = 13  # N – Description
+
+
 def get_already_matched_keys(sheets, spreadsheet_id: str, ca_tab: str) -> set:
     """
     Read the cash_application tab and return a set of (Date, Credit Amount, Description, Bank Ref)
@@ -133,16 +144,16 @@ def get_already_matched_keys(sheets, spreadsheet_id: str, ca_tab: str) -> set:
     if len(values) < 2:
         return set()
 
-    headers = values[0]
+    def _cell(row, idx):
+        return row[idx] if idx < len(row) else ""
+
     keys = set()
     for row_data in values[1:]:
-        padded = row_data + [""] * (len(headers) - len(row_data))
-        row = dict(zip(headers, padded))
         key = (
-            row.get("Date", ""),
-            row.get("Credit Amount", ""),
-            row.get("Description", ""),
-            row.get("Bank Ref #", ""),
+            _cell(row_data, _COL_DATE),
+            _cell(row_data, _COL_CREDIT_AMT),
+            _cell(row_data, _COL_DESCRIPTION),
+            _cell(row_data, _COL_BANK_REF),
         )
         keys.add(key)
     return keys
