@@ -119,14 +119,14 @@ def write_csv(rows: list, output_path: str) -> int:
 
 
 def _get_sheet_id(sheets, spreadsheet_id: str, tab_name: str) -> int:
-    """Look up the numeric sheetId for a tab by name."""
+    """Look up the numeric sheetId for a tab by name (case-insensitive)."""
     meta = sheets.spreadsheets().get(
         spreadsheetId=spreadsheet_id,
         fields="sheets.properties"
     ).execute()
     for sheet in meta.get("sheets", []):
         props = sheet.get("properties", {})
-        if props.get("title") == tab_name:
+        if props.get("title", "").lower() == tab_name.lower():
             return props["sheetId"]
     raise ValueError(f"Worksheet '{tab_name}' not found in spreadsheet")
 
