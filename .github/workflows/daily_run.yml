@@ -11,6 +11,11 @@ on:
         required: false
         type: boolean
         default: false
+      pd_date_override:
+        description: "Override PD file date (YYYYMMDD). Use to pull a specific day's file, e.g. a missed Saturday file."
+        required: false
+        type: string
+        default: ""
 
 jobs:
   # -----------------------------------------------------------------------
@@ -46,6 +51,7 @@ jobs:
           SFTP_USERNAME:            ${{ secrets.SFTP_USERNAME }}
           SFTP_PASSWORD:            ${{ secrets.SFTP_PASSWORD }}
           SFTP_REMOTE_DIR:          ${{ secrets.SFTP_REMOTE_DIR }}
+          PD_DATE_OVERRIDE:         ${{ github.event.inputs.pd_date_override }}
           GOOGLE_CLIENT_ID:         ${{ secrets.GOOGLE_CLIENT_ID }}
           GOOGLE_CLIENT_SECRET:     ${{ secrets.GOOGLE_CLIENT_SECRET }}
           GOOGLE_REFRESH_TOKEN:     ${{ secrets.GOOGLE_REFRESH_TOKEN }}

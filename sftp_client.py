@@ -29,7 +29,15 @@ def get_pd_file_date_str() -> str:
 
     On Monday (weekday 0) the pipeline must look for Saturday's file
     (today − 2 days).  On Tuesday–Friday it uses today's date.
+
+    Set the ``PD_DATE_OVERRIDE`` environment variable (YYYYMMDD) to
+    force a specific date, e.g. to backfill a missed Saturday file.
     """
+    override = os.environ.get("PD_DATE_OVERRIDE", "").strip()
+    if override:
+        logger.info(f"PD file date string (override): {override}")
+        return override
+
     today = datetime.now(timezone.utc)
     if today.weekday() == 0:  # Monday
         target = today - timedelta(days=2)
