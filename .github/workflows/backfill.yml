@@ -1,0 +1,56 @@
+name: Backfill BAI Transactions
+
+on:
+  workflow_dispatch:
+    inputs:
+      bai_content_b64:
+        description: "Base64-encoded BAI2 file content"
+        required: true
+        type: string
+      bai_filename:
+        description: "Original BAI filename (e.g. ARR_IR_GWperp5594_PD_20260314_34669.TXT)"
+        required: true
+        type: string
+
+jobs:
+  backfill:
+    name: "Backfill: Parse BAI → Drive → Sheets"
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: pip install --no-cache-dir -r requirements.txt
+
+      - name: Decode BAI file
+        run: |
+          mkdir -p /tmp/bai_pipeline
+          echo "${{ github.event.inputs.bai_content_b64 }}" | base64 -d > "/tmp/bai_pipeline/${{ github.event.inputs.bai_filename }}"
+          echo "Decoded file:"
+          ls -la "/tmp/bai_pipeline/${{ github.event.inputs.bai_filename }}"
+
+      - name: Run bank ingest (from local file)
+        env:
+          SFTP_HOST:                "skip"
+          SFTP_PORT:                "22"
+          SFTP_USERNAME:            "skip"
+          SFTP_PASSWORD:            "skip"
+          SFTP_REMOTE_DIR:          "skip"
+          LOCAL_BAI_FILE:           "/tmp/bai_pipeline/${{ github.event.inputs.bai_filename }}"
+          GOOGLE_CLIENT_ID:         ${{ secrets.GOOGLE_CLIENT_ID }}
+          GOOGLE_CLIENT_SECRET:     ${{ secrets.GOOGLE_CLIENT_SECRET }}
+          GOOGLE_REFRESH_TOKEN:     ${{ secrets.GOOGLE_REFRESH_TOKEN }}
+          GOOGLE_DRIVE_FOLDER_ID:   ${{ secrets.GOOGLE_DRIVE_FOLDER_ID }}
+          GOOGLE_ARCHIVE_FOLDER_ID: ${{ secrets.GOOGLE_ARCHIVE_FOLDER_ID }}
+          GOOGLE_SHEET_ID:          ${{ secrets.GOOGLE_SHEET_ID }}
+          GOOGLE_SHEET_TAB:         input
+          LOCAL_WORK_DIR:           /tmp/bai_pipeline
+        run: python bank_ingest.py

@@ -254,17 +254,22 @@ def run():
 
     try:
         # ------------------------------------------------------------------
-        # 1. Download raw TXT from SFTP
+        # 1. Download raw TXT from SFTP (or use local file override)
         # ------------------------------------------------------------------
-        logger.info("Step 1: Downloading BAI file from SFTP...")
-        local_bai_path = download_bai_file(
-            host=config["SFTP_HOST"],
-            port=config["SFTP_PORT"],
-            username=config["SFTP_USERNAME"],
-            password=config["SFTP_PASSWORD"],
-            remote_dir=config["SFTP_REMOTE_DIR"],
-            local_dir=work_dir,
-        )
+        local_bai_override = os.environ.get("LOCAL_BAI_FILE", "").strip()
+        if local_bai_override and os.path.isfile(local_bai_override):
+            logger.info(f"Step 1: Using local BAI file override: {local_bai_override}")
+            local_bai_path = local_bai_override
+        else:
+            logger.info("Step 1: Downloading BAI file from SFTP...")
+            local_bai_path = download_bai_file(
+                host=config["SFTP_HOST"],
+                port=config["SFTP_PORT"],
+                username=config["SFTP_USERNAME"],
+                password=config["SFTP_PASSWORD"],
+                remote_dir=config["SFTP_REMOTE_DIR"],
+                local_dir=work_dir,
+            )
         log_entry["bai_file"] = os.path.basename(local_bai_path)
         logger.info(f"Downloaded: {local_bai_path}")
 
