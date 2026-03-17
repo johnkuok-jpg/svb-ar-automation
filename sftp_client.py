@@ -8,7 +8,7 @@ Auth: username + password.
 import os
 import re
 import logging
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from typing import Optional
 
 import paramiko
@@ -20,19 +20,23 @@ TARGET_ACCOUNT = "34669"
 
 
 def get_pd_file_date_str() -> str:
-    """Return today's date as YYYYMMDD string for the PD filename.
+    """Return the YYYYMMDD date string for the expected PD filename.
 
-    SVB names prior-day files with the *processing date* (today),
-    not the transaction date.  For example, a file generated on
-    Tuesday 2026-02-24 containing Monday's transactions is named
-    ``..._PD_20260224_34669.TXT``.
+    SVB drops PD files Tuesday through Saturday.  Tue–Fri files are
+    dated with that day's date.  The Saturday file contains Friday's
+    transactions and is dated Saturday.  No file is produced on Sunday
+    or Monday.
 
-    The pipeline runs on weekdays only (via GitHub Actions cron),
-    so no weekend/holiday logic is needed here.
+    On Monday (weekday 0) the pipeline must look for Saturday's file
+    (today − 2 days).  On Tuesday–Friday it uses today's date.
     """
     today = datetime.now(timezone.utc)
-    result = today.strftime("%Y%m%d")
-    logger.info(f"PD file date string (today): {result}")
+    if today.weekday() == 0:  # Monday
+        target = today - timedelta(days=2)
+    else:
+        target = today
+    result = target.strftime("%Y%m%d")
+    logger.info(f"PD file date string: {result} (today={today.strftime('%A %Y%m%d')})")
     return result
 
 
