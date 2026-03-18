@@ -166,6 +166,94 @@ def _ensure_date_column_format(sheets, spreadsheet_id: str, sheet_id: int) -> No
     logger.info("Set Column A format to Date (M/d/yy)")
 
 
+def _get_existing_keys(sheets, spreadsheet_id: str, tab: str) -> tuple[set[str], set[tuple]]:
+    """
+    Read the Input tab and return two sets for dedup:
+      1. bank_refs: set of non-empty Bank Ref # values (column K)
+      2. composite_keys: set of (Date, BAI Type Code, amount, Description[:50]) tuples
+         for rows where Bank Ref # is empty
+    """
+    bank_refs: set[str] = set()
+    composite_keys: set[tuple] = set()
+
+    # Read columns A (Date), G (BAI Type Code), I (Credit Amount), J (Debit Amount),
+    # K (Bank Ref #), O (Description)
+    # We read all columns A through Q to keep it simple
+    result = (
+        sheets.spreadsheets()
+        .values()
+        .get(spreadsheetId=spreadsheet_id, range=f"{tab}!A:Q")
+        .execute()
+    )
+    all_rows = result.get("values", [])
+    if len(all_rows) <= 1:
+        # Empty or header-only
+        return bank_refs, composite_keys
+
+    # Find column indices from the header row
+    header = all_rows[0]
+    col_map = {name: idx for idx, name in enumerate(header)}
+
+    date_idx = col_map.get("Date", 0)
+    bai_idx = col_map.get("BAI Type Code", 6)
+    credit_idx = col_map.get("Credit Amount", 8)
+    debit_idx = col_map.get("Debit Amount", 9)
+    bankref_idx = col_map.get("Bank Ref #", 10)
+    desc_idx = col_map.get("Description", 14)
+
+    for row in all_rows[1:]:
+        def _cell(r, idx):
+            return r[idx].strip() if idx < len(r) else ""
+
+        bank_ref = _cell(row, bankref_idx)
+        if bank_ref:
+            bank_refs.add(bank_ref)
+        else:
+            # composite key for rows without a Bank Ref #
+            amount = _cell(row, credit_idx) or _cell(row, debit_idx)
+            composite_keys.add((
+                _cell(row, date_idx),
+                _cell(row, bai_idx),
+                amount,
+                _cell(row, desc_idx)[:50],
+            ))
+
+    return bank_refs, composite_keys
+
+
+def _dedup_rows(rows: list[dict], bank_refs: set[str], composite_keys: set[tuple]) -> list[dict]:
+    """Filter out rows that already exist in the sheet."""
+    new_rows = []
+    skipped = 0
+    for row in rows:
+        ref = (row.get("Bank Ref #") or "").strip()
+        if ref:
+            if ref in bank_refs:
+                skipped += 1
+                continue
+            # Add to set so intra-batch duplicates are also caught
+            bank_refs.add(ref)
+        else:
+            amount = row.get("Credit Amount") or row.get("Debit Amount") or ""
+            key = (
+                (row.get("Date") or "").strip(),
+                (row.get("BAI Type Code") or "").strip(),
+                str(amount).strip(),
+                (row.get("Description") or "")[:50].strip(),
+            )
+            if key in composite_keys:
+                skipped += 1
+                continue
+            composite_keys.add(key)
+
+        new_rows.append(row)
+
+    logger.info(f"Dedup: {skipped} duplicate(s) skipped, {len(new_rows)} new row(s) to append")
+    if skipped and not new_rows:
+        logger.warning("All rows are duplicates — nothing to append")
+    return new_rows
+
+
 def append_to_sheet(sheets, spreadsheet_id: str, tab: str, rows: list[dict]) -> int:
     """
     Append rows (list of dicts) to a sheet tab.
@@ -319,6 +407,16 @@ def run():
         creds  = get_google_credentials(config)
         drive  = build("drive",  "v3", credentials=creds)
         sheets = build("sheets", "v4", credentials=creds)
+
+        # Dedup: read existing rows from sheet and filter out duplicates
+        logger.info("Step 6a: Reading existing sheet data for dedup...")
+        bank_refs, composite_keys = _get_existing_keys(
+            sheets,
+            spreadsheet_id=config["GOOGLE_SHEET_ID"],
+            tab=config["GOOGLE_SHEET_TAB"],
+        )
+        logger.info(f"Found {len(bank_refs)} existing Bank Ref # values and {len(composite_keys)} composite keys")
+        transaction_rows = _dedup_rows(transaction_rows, bank_refs, composite_keys)
 
         log_entry["sheet_rows_appended"] = append_to_sheet(
             sheets,
