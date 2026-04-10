@@ -54,30 +54,6 @@ def _secret(key: str, default: str = None) -> str:
         raise KeyError(key)
     return val
 
-def _debug_sheets():
-    """DIAGNOSTIC - Remove after fixing"""
-    st.sidebar.header("🛠️ DEBUG")
-    try:
-        creds = _get_creds()
-        st.sidebar.success("✅ Credentials refreshed")
-        st.sidebar.info(f"Token expires: {creds.expiry}")
-        
-        # Test sheet access
-        meta = _sheets_get(f"/{SHEET_ID}")
-        st.sidebar.success("✅ Sheet metadata OK")
-        st.sidebar.info(f"Sheets: {[s['properties']['title'] for s in meta['sheets']]}")
-        
-        # Test log tab
-        _ensure_log_tab()
-        st.sidebar.success("✅ Log tab created/verified")
-        
-    except Exception as e:
-        st.sidebar.error(f"❌ FAILED: {type(e).__name__}: {e}")
-        st.sidebar.error(f"SHEET_ID being used: {SHEET_ID}")
-        st.stop()
-
-_debug_sheets()  # Runs on sidebar before main app
-
 # ── Password gate ─────────────────────────────────────────────────────────────────────────
 def _check_password():
     correct = _secret("DASHBOARD_PASSWORD", "")
@@ -213,6 +189,28 @@ st.title("\U0001f4b0 Past Due AR Dashboard")
 st.caption(f"Data refreshes every 5 minutes  \u00b7  Sending from **{SENDER}**")
 
 _ensure_log_tab()
+
+# ── DEBUG SECTION (delete after fixing) ───────────────────────────────────────
+if st.sidebar.checkbox("🛠️ Show Debug Info", value=False):
+    st.sidebar.subheader("Debug Diagnostics")
+    try:
+        creds = _get_creds()
+        st.sidebar.success("✅ Credentials refreshed")
+        st.sidebar.info(f"Token valid: {creds.valid} | Expires: {getattr(creds, 'expiry', 'N/A')}")
+        
+        meta = _sheets_get(f"/{SHEET_ID}")
+        st.sidebar.success("✅ Sheet metadata OK")
+        st.sidebar.info(f"Sheets: {[s['properties']['title'] for s in meta['sheets']]}")
+        
+        _ensure_log_tab()
+        st.sidebar.success("✅ Log tab verified")
+        
+    except Exception as e:
+        st.sidebar.error(f"❌ FAILED: {type(e).__name__}: {e}")
+        st.sidebar.error(f"SHEET_ID: {SHEET_ID}")
+        import traceback
+        st.sidebar.code(traceback.format_exc())
+
 
 tab_invoices, tab_log = st.tabs(["\U0001f4cb Past Due Invoices", "\U0001f4e8 Email Log"])
 
