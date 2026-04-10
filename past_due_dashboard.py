@@ -54,6 +54,30 @@ def _secret(key: str, default: str = None) -> str:
         raise KeyError(key)
     return val
 
+def _debug_sheets():
+    """DIAGNOSTIC - Remove after fixing"""
+    st.sidebar.header("🛠️ DEBUG")
+    try:
+        creds = _get_creds()
+        st.sidebar.success("✅ Credentials refreshed")
+        st.sidebar.info(f"Token expires: {creds.expiry}")
+        
+        # Test sheet access
+        meta = _sheets_get(f"/{SHEET_ID}")
+        st.sidebar.success("✅ Sheet metadata OK")
+        st.sidebar.info(f"Sheets: {[s['properties']['title'] for s in meta['sheets']]}")
+        
+        # Test log tab
+        _ensure_log_tab()
+        st.sidebar.success("✅ Log tab created/verified")
+        
+    except Exception as e:
+        st.sidebar.error(f"❌ FAILED: {type(e).__name__}: {e}")
+        st.sidebar.error(f"SHEET_ID being used: {SHEET_ID}")
+        st.stop()
+
+_debug_sheets()  # Runs on sidebar before main app
+
 # ── Password gate ─────────────────────────────────────────────────────────────────────────
 def _check_password():
     correct = _secret("DASHBOARD_PASSWORD", "")
