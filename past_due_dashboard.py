@@ -188,28 +188,35 @@ Perplexity AR
 st.title("\U0001f4b0 Past Due AR Dashboard")
 st.caption(f"Data refreshes every 5 minutes  \u00b7  Sending from **{SENDER}**")
 
-_ensure_log_tab()
+# ── Safe initialization with error display ─────────────────────────────────────
+try:
+    _ensure_log_tab()
+except Exception as init_error:
+    st.error("🚨 **Initialization Failed** — Google Sheets API error")
+    st.error(f"**Error:** {type(init_error).__name__}: {init_error}")
+    st.error(f"**SHEET_ID used:** `{SHEET_ID}`")
+    st.info("✅ **Fix:** Check your Streamlit Secrets (Settings → Secrets) and ensure:\n"
+            "1. `GOOGLE_SHEET_ID` matches your sheet\n"
+            "2. `GOOGLE_REFRESH_TOKEN` is valid\n"
+            "3. The sheet is shared (Editor) with your OAuth account")
+    
+    # Show raw response if available
+    if hasattr(init_error, 'response') and init_error.response is not None:
+        st.code(f"HTTP {init_error.response.status_code}: {init_error.response.text[:500]}")
+    
+    with st.expander("📋 Full Secret Keys Present Check"):
+        missing = []
+        for key in ["GOOGLE_CLIENT_ID", "GOOGLE_CLIENT_SECRET", "GOOGLE_REFRESH_TOKEN", "GOOGLE_SHEET_ID"]:
+            try:
+                _ = _secret(key)
+                st.success(f"✅ `{key}` present")
+            except KeyError:
+                st.error(f"❌ `{key}` MISSING")
+                missing.append(key)
+        if missing:
+            st.warning(f"Add these to Streamlit Secrets: {', '.join(missing)}")
+    st.stop()  # Stop app until fixed
 
-# ── DEBUG SECTION (delete after fixing) ───────────────────────────────────────
-if st.sidebar.checkbox("🛠️ Show Debug Info", value=False):
-    st.sidebar.subheader("Debug Diagnostics")
-    try:
-        creds = _get_creds()
-        st.sidebar.success("✅ Credentials refreshed")
-        st.sidebar.info(f"Token valid: {creds.valid} | Expires: {getattr(creds, 'expiry', 'N/A')}")
-        
-        meta = _sheets_get(f"/{SHEET_ID}")
-        st.sidebar.success("✅ Sheet metadata OK")
-        st.sidebar.info(f"Sheets: {[s['properties']['title'] for s in meta['sheets']]}")
-        
-        _ensure_log_tab()
-        st.sidebar.success("✅ Log tab verified")
-        
-    except Exception as e:
-        st.sidebar.error(f"❌ FAILED: {type(e).__name__}: {e}")
-        st.sidebar.error(f"SHEET_ID: {SHEET_ID}")
-        import traceback
-        st.sidebar.code(traceback.format_exc())
 
 
 tab_invoices, tab_log = st.tabs(["\U0001f4cb Past Due Invoices", "\U0001f4e8 Email Log"])
